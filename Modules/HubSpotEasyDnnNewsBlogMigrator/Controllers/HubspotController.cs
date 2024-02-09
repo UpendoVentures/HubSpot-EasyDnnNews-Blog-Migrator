@@ -26,43 +26,41 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         {
             _hubspotRepository = hubspotRepository;
         }
+
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IHttpActionResult> GetSettings()
         {
             var settings = await _hubspotRepository.GetSettings();
             return Ok(settings);
         }
+
         [HttpPost]
         public IHttpActionResult UpdateSettings(HubspotSetting settings)
         {
-            var result =  _hubspotRepository.UpdateSettings(settings);
+            var result = _hubspotRepository.UpdateSettings(settings);
             return Ok(result);
         }
 
         [HttpGet]
-        public HttpResponseMessage InitiateOAuth()
+        public IHttpActionResult InitiateOAuth()
         {
             var settings = _hubspotRepository.GetSettings();
             var clientId = settings.ConfigureAwait(false).GetAwaiter().GetResult().ClientId;
             var redirectUri = settings.ConfigureAwait(false).GetAwaiter().GetResult().RedirectUri;
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
             {
-                var response = Request.CreateResponse(HttpStatusCode.BadRequest);
-                response.Content = new StringContent(Localization.GetString("MissingConfigurationsClientIdRedirectUri.Text", ResourceFile));
-                return response;
+                return BadRequest(Localization.GetString("MissingConfigurationsClientIdRedirectUri.Text", ResourceFile));
             }
             else
             {
                 var authUrl = $"https://app.hubspot.com/oauth/authorize?client_id={clientId}&scope=content%20oauth&redirect_uri={redirectUri}";
-                var response = Request.CreateResponse(HttpStatusCode.Redirect);
-                response.Headers.Location = new Uri(authUrl);
-                return response;
+                return Ok(authUrl);
             }
         }
 
-        [HttpGet]
-        public async Task<IHttpActionResult> OAuthCallback(string code)
+
+        [HttpPost]
+        public async Task<IHttpActionResult> OAuthCallback([FromBody] string code)
         {
             var settings = _hubspotRepository.GetSettings();
             var clientId = settings.ConfigureAwait(false).GetAwaiter().GetResult().ClientId;
@@ -91,7 +89,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         {
             if (Request.Headers.TryGetValues("AccessToken", out IEnumerable<string> headerValues))
             {
-             var accessToken = headerValues.FirstOrDefault();
+                var accessToken = headerValues.FirstOrDefault();
                 return await _hubspotRepository.GetPosts(accessToken);
             }
             else
@@ -105,20 +103,16 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         }
 
         [HttpGet]
-        public async Task<bool> MigratePosts()
+        public async Task<string> MigratePosts()
         {
             if (Request.Headers.TryGetValues("AccessToken", out IEnumerable<string> headerValues))
             {
-               var accessToken = headerValues.FirstOrDefault();
+                var accessToken = headerValues.FirstOrDefault();
                 return await _hubspotRepository.MigratePosts(accessToken);
             }
             else
             {
-                var message = new HttpResponseMessage(HttpStatusCode.BadRequest)
-                {
-                    Content = new StringContent(Localization.GetString("MissingAccessToken.Text", ResourceFile))
-                };
-                throw new HttpResponseException(message);
+                return Localization.GetString("MissingAccessToken.Text", ResourceFile);
             }
         }
 
