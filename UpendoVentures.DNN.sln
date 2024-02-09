@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2003
@@ -34,17 +34,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Skins", "Skins", "{EAE79EDB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Viewsets", "Viewsets", "{C5228275-B3D3-4550-A755-98F70CDCEA69}"
 EndProject
+Project("{fae04ec0-301f-11d3-bf4b-00c04f79efbc}") = "UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator", "Modules\HubSpotEasyDnnNewsBlogMigrator\UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.csproj", "{4044F946-5194-4776-A88D-916C6BB7215A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4044F946-5194-4776-A88D-916C6BB7215A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4044F946-5194-4776-A88D-916C6BB7215A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4044F946-5194-4776-A88D-916C6BB7215A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4044F946-5194-4776-A88D-916C6BB7215A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {eb26685c-c831-4c7b-bf6d-9133ab14d970}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4044F946-5194-4776-A88D-916C6BB7215A} = {70FB7EDF-2E12-405F-B9CD-8A437E96FB11}
 	EndGlobalSection
 EndGlobal
