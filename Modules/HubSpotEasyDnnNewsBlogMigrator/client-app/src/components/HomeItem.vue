@@ -15,7 +15,7 @@
 <script setup>
 import { inject, ref, } from 'vue';
 import axios from "axios";
-import utils from "@/assets/utils";
+import { getUrlBase } from "../assets/utils";
 
 // Injected dependencies
 const resx = inject("resx");
@@ -23,7 +23,7 @@ const dnnConfig = inject("dnnConfig");
 
 // Reactive references
 const items = ref([]);
-var baseUrl = `${utils.getUrlBase("Hubspot")}`;
+var baseUrl = `${getUrlBase("Hubspot")}`;
 
 // Variables
 let accessToken = "CIGA18zYMRICAgEYturAFSCF6aceKKi-rgEyFHChQXlu9_fXOKdhOq_pzj8s9xTJOj8AIABB_wcAAAAAgAAAYHjAIAAAAAAAAAAEAAAYAAAAwMMfAAEAAACABgAAAAAAAAAAAAAAAAAAAAAAAgAIuAJCFNgc1RTjgBQdXFXYVb3qn66FuII_SgNuYTFSAFoA"
