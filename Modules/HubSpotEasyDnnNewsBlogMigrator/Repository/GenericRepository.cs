@@ -242,6 +242,18 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             // The convention is based on appending "_s" to the entity type's name, optionally with a prefix.
             return $"{Constant.DBTABLE_PREFIX}_{type.Name}" + "s";
         }
+        
+        /// <summary>
+        /// Gets the name of the database table associated with the entity type T.
+        /// </summary>
+        /// <returns>
+        ///   The name of the database table for the entity type T.
+        /// </returns>
+        public string GetSingleTableName()
+        {
+            var type = typeof(T);
+            return type.Name;
+        }
 
         /// <summary>
         /// Gets the name of the primary key column associated with the entity type T.
@@ -291,7 +303,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         /// <returns>
         ///   A string containing comma-separated column names for the entity type T.
         /// </returns>
-        private string GetColumns(bool excludeKey = false)
+        public string GetColumns(bool excludeKey = false)
         {
             var type = typeof(T);
 
