@@ -13,6 +13,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contr
         Task<HubspotSetting> UpdateSettings(HubspotSetting settings);
         Task<TokenResponse> OAuthCallback(HubspotSetting settings);
         Task<BlogResponse> GetPosts(string accessToken);
-        Task<bool> MigratePosts(string accessToken);
+        Task<string> MigratePosts(string accessToken);
     }
 }
