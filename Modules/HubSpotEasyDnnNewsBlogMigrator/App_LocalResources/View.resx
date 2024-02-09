@@ -129,4 +129,10 @@
   <data name="MissingConfigurationsClientIdRedirectUriClientSecret.Text" xml:space="preserve">
     <value>Missing configurations for clientId, redirectUri, or clientSecret.</value>
   </data>
+  <data name="ATotalOf.Text" xml:space="preserve">
+    <value>A total of</value>
+  </data>
+  <data name="WereMigratedSuccessfully.Text" xml:space="preserve">
+    <value>were migrated successfully</value>
+  </data>
 </root>
