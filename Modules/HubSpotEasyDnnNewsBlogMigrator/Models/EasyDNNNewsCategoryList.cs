@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
@@ -7,6 +8,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models
 {
     public class EasyDNNNewsCategoryList
     {
+        [Key]
         public int CategoryID { get; set; }
         public int PortalID { get; set; }
         public string CategoryName { get; set; }
