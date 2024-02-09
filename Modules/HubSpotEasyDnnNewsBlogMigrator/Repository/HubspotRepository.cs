@@ -42,12 +42,17 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             var setting = new HubspotSetting { };
             var moduleController = new ModuleController();
             var settings = moduleController.GetModuleSettings(_moduleId);
-            setting.ClientId = _encryptionHelper.DecryptString(settings[Constant.ClientId] as string);
-            setting.ClientSecret = _encryptionHelper.DecryptString(settings[Constant.ClientSecret] as string);
-            setting.RedirectUri = _encryptionHelper.DecryptString(settings[Constant.RedirectUri] as string);
-            setting.Scope = _encryptionHelper.DecryptString(settings[Constant.Scope] as string);
+
+            if (settings != null)
+            {
+                setting.ClientId = settings.ContainsKey(Constant.ClientId) ? _encryptionHelper.DecryptString(settings[Constant.ClientId] as string) : null;
+                setting.ClientSecret = settings.ContainsKey(Constant.ClientSecret) ? _encryptionHelper.DecryptString(settings[Constant.ClientSecret] as string) : null;
+                setting.RedirectUri = settings.ContainsKey(Constant.RedirectUri) ? _encryptionHelper.DecryptString(settings[Constant.RedirectUri] as string) : null;
+                setting.Scope = settings.ContainsKey(Constant.Scope) ? _encryptionHelper.DecryptString(settings[Constant.Scope] as string) : null;
+            }
             return setting;
         }
+
 
 
         public new async Task<HubspotSetting> UpdateSettings(HubspotSetting settings)
