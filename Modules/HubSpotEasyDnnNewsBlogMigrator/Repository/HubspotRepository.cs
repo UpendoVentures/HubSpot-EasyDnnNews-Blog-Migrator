@@ -6,6 +6,8 @@ using DotNetNuke.Instrumentation;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using Dapper;
 using System.Net.Http;
 using System.Threading.Tasks;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
@@ -13,11 +15,13 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Data;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
+using DotNetNuke.Services.Localization;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
     public class HubspotRepository : GenericRepository<EasyDNNNews>, IHubspotRepository
     {
+        private readonly IDbConnection _connection;
         private readonly ILog _logger;
         private readonly ModuleController _moduleController;
         private readonly int _portalId;
@@ -25,9 +29,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly int _moduleId;
         private readonly UserInfo _currentUser;
         private readonly IEncryptionHelper _encryptionHelper;
+        private readonly string ResourceFile = Constant.ResxPartialRoot;
 
         public HubspotRepository(DapperContext context, IEncryptionHelper encryptionHelper) : base(context)
         {
+            _connection = context.CreateConnection();
             _logger = LoggerSource.Instance.GetLogger(GetType());
             _moduleController = new ModuleController();
             _portalId = PortalController.Instance.GetCurrentPortalSettings().PortalId;
@@ -119,11 +125,9 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
         }
 
-        public new async Task<bool> MigratePosts(string accessToken)
+        public new async Task<string> MigratePosts(string accessToken)
         {
-            List<Blog> blogs = new List<Blog>();
-            var rowsEffected = false;
-
+            var result = "";
             try
             {
                 using (var client = new HttpClient())
@@ -133,7 +137,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                     var response = await client.SendAsync(request);
                     var content = await response.Content.ReadAsStringAsync();
                     var blogResponse = JsonConvert.DeserializeObject<BlogResponse>(content);
-                    blogs = blogResponse.Results;
+                    if(blogResponse.Category == "EXPIRED_AUTHENTICATION")
+                    {
+                        return blogResponse.Message;
+                    }
+                    var blogs = blogResponse.Results;
 
                     try
                     {
@@ -149,10 +157,10 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 Summary = item.PostSummary,
                                 Article = item.PostBody,
                                 ArticleImage = item.FeaturedImage,
-                                DateAdded = item.Created,
-                                LastModified = item.Updated,
-                                PublishDate = item.PublishDate,
-                                ExpireDate = publishDate.AddYears(1).ToString("yyyy-MM-dd HH:mm:ss"),
+                                DateAdded = DateTime.Parse(item.Created, null, System.Globalization.DateTimeStyles.RoundtripKind),
+                                LastModified = DateTime.Parse(item.Updated, null, System.Globalization.DateTimeStyles.RoundtripKind),
+                                PublishDate = DateTime.Parse(item.PublishDate, null, System.Globalization.DateTimeStyles.RoundtripKind),
+                                ExpireDate = DateTime.Parse(item.PublishDate, null, System.Globalization.DateTimeStyles.RoundtripKind).AddYears(1),
                                 NumberOfViews = 0,
                                 RatingValue = 0,
                                 RatingCount = 0,
@@ -169,42 +177,78 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 DisplayStyle = "DEFAULT",
                                 DetailTarget = "_self",
                                 CleanArticleData = item.PostBody,
-                                ArticleFromRSS = item.RssSummary,
-                                HasPermissions = "0",
-                                EventArticle = "0",
+                                ArticleFromRSS = false,
+                                HasPermissions = false,
+                                EventArticle = false,
                                 DetailsArticleImage = "Image",
-                                ShowGallery = "1",
-                                HideDefaultLocale = "0",
-                                Featured = "0",
-                                Approved = "1",
-                                AllowComments = "1",
-                                Active = "1",
-                                ShowMainImage = "1",
-                                ShowMainImageFront = "1",
-                                ArticleImageSet = "1",
+                                ShowGallery = true,
+                                HideDefaultLocale = false,
+                                Featured = false,
+                                Approved = true,
+                                AllowComments = true,
+                                Active = true,
+                                ShowMainImage = true,
+                                ShowMainImageFront = true,
+                                ArticleImageSet = true,
                                 GoodVotesCount = 0,
                                 BadVotesCount = 0,
-                                Published = "1",
+                                Published = false,
                                 WorkflowId = 1,
                                 RevisionHistoryEntryID= 0,
                             };
-                            rowsEffected = await AddAsync(easyDNNNews);
+                           var rowsEffected = await AddEasyDNNNews(easyDNNNews);
+                            if (!rowsEffected)
+                            {
+                                return $"{Localization.GetString("ATotalOf.Text", ResourceFile)} 0 {Localization.GetString("WereMigratedSuccessfully.Text", ResourceFile)}";
+                            }
                         }
+                        return $"{Localization.GetString("ATotalOf.Text", ResourceFile)} {blogResponse.Total} {Localization.GetString("WereMigratedSuccessfully.Text", ResourceFile)}";
                     }
                     catch (Exception ex)
                     {
                         _logger.Error(ex);
                     }
-
-                    // Return true if at least one row is affected by the insert; otherwise, return false.
-                    return rowsEffected;
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error("Error making the HTTP request", ex);
             }
-            return rowsEffected;
+            return result;
+        }
+
+        /// <summary>
+        /// Adds a new entity of type T to the database.
+        /// </summary>
+        /// <param name="entity">The entity to add to the database.</param>
+        /// <returns>
+        ///   <c>true</c> if the entity was successfully added; otherwise, <c>false</c>.
+        /// </returns>
+        public async Task<bool> AddEasyDNNNews(EasyDNNNews entity)
+        {
+            int rowsEffected = 0;
+            try
+            {
+                // Get the name of the table associated with the entity type.
+                string tableName = GetSingleTableName();
+
+                // Get the names of columns and properties, excluding the primary key.
+                string columns = GetColumns(excludeKey: true);
+                string properties = GetPropertyNames(excludeKey: true);
+
+                // Create an SQL query to insert the entity into the table.
+                string query = $"INSERT INTO {tableName} ({columns}) VALUES ({properties})";
+
+                // Execute the insert query asynchronously, specifying the entity as parameters.
+                rowsEffected = await _connection.ExecuteAsync(query, entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+
+            // Return true if at least one row is affected by the insert; otherwise, return false.
+            return rowsEffected > 0 ? true : false;
         }
     }
 }
