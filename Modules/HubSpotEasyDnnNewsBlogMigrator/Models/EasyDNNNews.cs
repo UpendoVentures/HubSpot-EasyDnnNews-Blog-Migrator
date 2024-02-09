@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
@@ -7,6 +8,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models
 {
     public class EasyDNNNews
     {
+        [Key]
         public int ArticleID { get; set; }
         public int PortalID { get; set; }
         public int UserID { get; set; }
@@ -15,12 +17,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models
         public string Summary { get; set; }
         public string Article { get; set; }
         public string ArticleImage { get; set; }
-        public string DateAdded { get; set; }
-        public string LastModified { get; set; }
-        public string PublishDate { get; set; }
-        public string ExpireDate { get; set; }
+        public DateTime DateAdded { get; set; }
+        public DateTime LastModified { get; set; }
+        public DateTime PublishDate { get; set; }
+        public DateTime ExpireDate { get; set; }
         public int NumberOfViews { get; set; }
-        public double RatingValue { get; set; }
+        public decimal RatingValue { get; set; }
         public int RatingCount { get; set; }
         public string TitleLink { get; set; }
         public string DetailType { get; set; }
@@ -37,25 +39,25 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models
         public string DisplayStyle { get; set; }
         public string DetailTarget { get; set; }
         public string CleanArticleData { get; set; }
-        public string ArticleFromRSS { get; set; }
-        public string HasPermissions { get; set; }
-        public string EventArticle { get; set; }
+        public bool ArticleFromRSS { get; set; }
+        public bool HasPermissions { get; set; }
+        public bool EventArticle { get; set; }
         public string DetailMediaType { get; set; }
         public string DetailMediaData { get; set; }
         public string AuthorAliasName { get; set; }
-        public string ShowGallery { get; set; }
-        public string ArticleGalleryID { get; set; }
+        public bool ShowGallery { get; set; }
+        public int ArticleGalleryID { get; set; }
         public string MainImageTitle { get; set; }
         public string MainImageDescription { get; set; }
-        public string HideDefaultLocale { get; set; }
-        public string Featured { get; set; }
-        public string Approved { get; set; }
-        public string AllowComments { get; set; }
-        public string Active { get; set; }
-        public string ShowMainImage { get; set; }
-        public string ShowMainImageFront { get; set; }
-        public string ArticleImageSet { get; set; }
-        public string CFGroupeID { get; set; }
+        public bool HideDefaultLocale { get; set; }
+        public bool Featured { get; set; }
+        public bool Approved { get; set; }
+        public bool AllowComments { get; set; }
+        public bool Active { get; set; }
+        public bool ShowMainImage { get; set; }
+        public bool ShowMainImageFront { get; set; }
+        public bool ArticleImageSet { get; set; }
+        public int CFGroupeID { get; set; }
         public string DetailsDocumentsTemplate { get; set; }
         public string DetailsLinksTemplate { get; set; }
         public string DetailsRelatedArticlesTemplate { get; set; }
@@ -66,11 +68,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models
         public string StructuredDataJSON { get; set; }
         public int GoodVotesCount { get; set; }
         public int BadVotesCount { get; set; }
-        public string Published { get; set; }
+        public bool Published { get; set; }
         public int WorkflowId { get; set; }
         public int RevisionHistoryEntryID { get; set; }
         public string DetailsArticleImage { get; set; }
-        public string SimpleForumTopicId { get; set; }
+        public int SimpleForumTopicId { get; set; }
         public string AddRobotsFollowTag { get; set; }
     }
+
 }
