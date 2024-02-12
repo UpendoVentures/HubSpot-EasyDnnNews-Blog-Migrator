@@ -1,16 +1,29 @@
 <template>
-    <div class="mx-3">
-        <div class="text-center">
-            <h2>{{ resx.Welcome }}</h2>
-            <ul class="dnnActions dnnClear">
-                <li><a class="dnnPrimaryAction" @click="migratePosts()">Migrate Posts</a></li>
-            </ul>
-            <ul class="dnnActions dnnClear">
-                <li><a class="dnnPrimaryAction" @click="updateSettings()">Update Settings</a></li>
-            </ul>
-            <ul class="dnnActions dnnClear">
-                <li><a class="dnnPrimaryAction" @click="geturlForInitiateOAuth()">Initiate OAuth</a></li>
-            </ul>
+    <div class="container">
+        <div class="col-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ resx.Welcome }}</h5>
+                    <p class="card-text">{{ message }}</p>
+                    <span v-if="tokenExpired">
+                        <ul class="dnnActions dnnClear">
+                            <li><a class="dnnPrimaryAction" @click="geturlForInitiateOAuth()">{{ resx.LogHubspot }}</a></li>
+                        </ul>
+                    </span>
+                    <span v-if="!tokenExpired">
+                        <p class="card-text">{{ resx.ThereAreTotalOf }} {{ items.Total }} {{ resx.PostsOnHubSpot }}</p>
+                        <div class="dnnFormMessage dnnFormSuccess col-6" v-if="postMigrated">
+                            {{ resx.ATotalOf }} {{ postMigrated }} {{ resx.WereMigratedSuccessfully }}
+                        </div>
+                        <ul class="dnnActions dnnClear">
+                            <li><a class="dnnPrimaryAction" @click="migratePosts()">{{ resx.MigratePosts }}</a></li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-4 mx-2">
+            <HubSpotSettings />
         </div>
     </div>
 </template>
@@ -19,6 +32,7 @@
 import { inject, ref, } from 'vue';
 import { makeRequest } from '../assets/api.js';
 import { getCookie } from '../assets/utils.js';
+import HubSpotSettings from './HubSpotSettings.vue';
 
 // Injected dependencies
 const resx = inject("resx");
@@ -26,6 +40,9 @@ const dnnConfig = inject("dnnConfig");
 
 // Reactive references
 const items = ref([]);
+const message = ref('');
+const tokenExpired = ref(false);
+const postMigrated = ref(0);
 
 // Variables
 const accessToken = getCookie('access_token');
@@ -37,45 +54,24 @@ const checkCode = async () => {
     const code = params.get('code');
     if (code) {
         const result = await makeRequest(dnnConfig, 'OAuthCallback', 'post', code, accessToken);
-        console.log("result", result);
         if (result.access_token != null) {
             document.cookie = `access_token=${result.access_token}; path=/`;
         }
-        // else {
-        //     document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        // }
         const url = new URL(window.location.href);
         window.location.href = url.origin + url.pathname;
     }
 }
 
-const fetchItems = async () => {
+const getBlogPosts = async () => {
     const result = await makeRequest(dnnConfig, 'GetBlogPosts', 'get', null, accessToken);
     if (result) {
+        if (result.Status == "error") {
+            tokenExpired.value = true;
+            message.value = result.Message;
+        }
         items.value = result;
     }
 }
-
-const getSettings = async () => {
-    const result = await makeRequest(dnnConfig, 'GetSettings', 'get', null, accessToken);
-    if (result) {
-        items.value = result;
-    }
-}
-
-const updateSettings = async () => {
-    var data = {
-        ClientId: "e7d75ea8-f8d6-416e-9817-7e3a00b00b82",
-        ClientSecret: "cd7713a0-14ce-4a9d-87a5-3c156caf3f6f",
-        RedirectUri: "https://localhost.dnndev.me/hubspot",
-        Scope: "content"
-    }
-    const response = await makeRequest(dnnConfig, 'UpdateSettings', 'post', data);
-    if (response) {
-        fetchItems();
-    }
-}
-
 async function geturlForInitiateOAuth() {
     var url = await makeRequest(dnnConfig, 'InitiateOAuth');
     window.open(url, '_blank');
@@ -84,12 +80,12 @@ async function geturlForInitiateOAuth() {
 async function migratePosts() {
     const result = await makeRequest(dnnConfig, 'MigratePosts', 'get', null, accessToken);
     if (result) {
-        items.value = result;
+        console.log(result);
+        postMigrated.value = result;
     }
 }
 
 // Executed methods during the component's mounting phase
 checkCode(); // Check for code in the URL
-fetchItems();// Initial fetching of items
-getSettings(); // Get settings
+getBlogPosts();// Initial fetching of items
 </script>
