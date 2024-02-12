@@ -53,5 +53,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants
         public const string FriendlyName = "HubSpotEasyDnnNewsBlogMigrator";
         public const string PhraseKey = "0123456789abcdef0123456789abcdef";
         public const string PhraseIv = "abcdef0123456789";
+        public const string DefaultCategoryName = "Uncategorized";
     }
 }
