@@ -17,6 +17,7 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
 using DotNetNuke.Services.Localization;
 using System.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -133,9 +134,9 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
         }
 
-        public new async Task<string> MigratePosts(string accessToken)
+        public new async Task<int> MigratePosts(string accessToken)
         {
-            var result = "";
+            var result = 0;
             try
             {
                 using (var client = new HttpClient())
@@ -147,7 +148,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                     var blogResponse = JsonConvert.DeserializeObject<BlogResponse>(content);
                     if (blogResponse.Category == "EXPIRED_AUTHENTICATION")
                     {
-                        return blogResponse.Message;
+                        return result;
                     }
                     var blogs = blogResponse.Results;
                     var rowsEffected = 0;
@@ -257,13 +258,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 };
                                 var categories = await _easyDNNNewsCategoriesRepository.AddEasyDNNNewsCategories(easyDNNNewsCategories);
                             }
-
                             if (rowsEffected == 0)
                             {
-                                return $"{Localization.GetString("ATotalOf.Text", ResourceFile)} 0 {Localization.GetString("WereMigratedSuccessfully.Text", ResourceFile)}";
+                                return result;
                             }
                         }
-                        return $"{Localization.GetString("ATotalOf.Text", ResourceFile)} {blogResponse.Total} {Localization.GetString("WereMigratedSuccessfully.Text", ResourceFile)}";
+                        return blogResponse.Total;
                     }
                     catch (Exception ex)
                     {
