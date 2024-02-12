@@ -46,7 +46,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models
         public string DetailMediaData { get; set; }
         public string AuthorAliasName { get; set; }
         public bool ShowGallery { get; set; }
-        public int ArticleGalleryID { get; set; }
+        public int? ArticleGalleryID { get; set; }
         public string MainImageTitle { get; set; }
         public string MainImageDescription { get; set; }
         public bool HideDefaultLocale { get; set; }
@@ -57,7 +57,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models
         public bool ShowMainImage { get; set; }
         public bool ShowMainImageFront { get; set; }
         public bool ArticleImageSet { get; set; }
-        public int CFGroupeID { get; set; }
+        public int? CFGroupeID { get; set; }
         public string DetailsDocumentsTemplate { get; set; }
         public string DetailsLinksTemplate { get; set; }
         public string DetailsRelatedArticlesTemplate { get; set; }
@@ -72,7 +72,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models
         public int WorkflowId { get; set; }
         public int RevisionHistoryEntryID { get; set; }
         public string DetailsArticleImage { get; set; }
-        public int SimpleForumTopicId { get; set; }
+        public int? SimpleForumTopicId { get; set; }
         public string AddRobotsFollowTag { get; set; }
     }
 
