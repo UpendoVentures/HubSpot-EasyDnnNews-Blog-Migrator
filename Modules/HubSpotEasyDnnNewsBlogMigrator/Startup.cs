@@ -13,6 +13,9 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator
         {
             services.AddTransient<DapperContext, DapperContext>();
             services.AddScoped<IHubspotRepository, HubspotRepository>();
+            services.AddScoped<IEasyDNNNewsRepository, EasyDNNNewsRepository>();
+            services.AddScoped<IEasyDNNNewsCategoriesRepository, EasyDNNNewsCategoriesRepository>();
+            services.AddScoped<IEasyDNNNewsCategoryListRepository, EasyDNNNewsCategoryListRepository>();
             services.AddScoped<IEncryptionHelper, EncryptionHelper>();
         }
     }
