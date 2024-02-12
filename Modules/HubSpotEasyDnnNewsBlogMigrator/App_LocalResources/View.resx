@@ -133,6 +133,36 @@
     <value>A total of</value>
   </data>
   <data name="WereMigratedSuccessfully.Text" xml:space="preserve">
-    <value>were migrated successfully</value>
+    <value>posts were migrated successfully</value>
+  </data>
+  <data name="ClientID.Text" xml:space="preserve">
+    <value>Client ID:</value>
+  </data>
+  <data name="ClientSecret.Text" xml:space="preserve">
+    <value>Client Secret:</value>
+  </data>
+  <data name="HubSpotSettings.Text" xml:space="preserve">
+    <value>HubSpot Settings</value>
+  </data>
+  <data name="LogHubspot.Text" xml:space="preserve">
+    <value>Log in to Hubspot</value>
+  </data>
+  <data name="MigratePosts.Text" xml:space="preserve">
+    <value>Migrate Posts</value>
+  </data>
+  <data name="PostsOnHubSpot.Text" xml:space="preserve">
+    <value>posts on HubSpot</value>
+  </data>
+  <data name="RedirectURI.Text" xml:space="preserve">
+    <value>Redirect URI:</value>
+  </data>
+  <data name="Save.Text" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Scope.Text" xml:space="preserve">
+    <value>Scope:</value>
+  </data>
+  <data name="ThereAreTotalOf.Text" xml:space="preserve">
+    <value>There are a total of</value>
   </data>
 </root>
