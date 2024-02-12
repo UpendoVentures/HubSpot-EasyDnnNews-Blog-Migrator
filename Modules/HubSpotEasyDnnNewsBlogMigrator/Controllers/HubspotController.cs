@@ -103,16 +103,16 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         }
 
         [HttpGet]
-        public async Task<string> MigratePosts()
+        public async Task<IHttpActionResult> MigratePosts()
         {
             if (Request.Headers.TryGetValues("AccessToken", out IEnumerable<string> headerValues))
             {
                 var accessToken = headerValues.FirstOrDefault();
-                return await _hubspotRepository.MigratePosts(accessToken);
+                return Ok( await _hubspotRepository.MigratePosts(accessToken));
             }
             else
             {
-                return Localization.GetString("MissingAccessToken.Text", ResourceFile);
+                return Ok(Localization.GetString("MissingAccessToken.Text", ResourceFile));
             }
         }
 
