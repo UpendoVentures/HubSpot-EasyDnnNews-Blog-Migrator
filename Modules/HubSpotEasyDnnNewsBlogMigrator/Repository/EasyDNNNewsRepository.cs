@@ -18,25 +18,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
     {
         private readonly IDbConnection _connection;
         private readonly ILog _logger;
-        private readonly ModuleController _moduleController;
-        private readonly int _portalId;
-        private readonly ModuleInfo _module;
-        private readonly int _moduleId;
-        private readonly UserInfo _currentUser;
-        private readonly IEncryptionHelper _encryptionHelper;
-        private readonly string ResourceFile = Constant.ResxRoot;
 
-        public EasyDNNNewsRepository(DapperContext context, IEncryptionHelper encryptionHelper) : base(context)
+        public EasyDNNNewsRepository(DapperContext context) : base(context)
         {
             _connection = context.CreateConnection();
             _logger = LoggerSource.Instance.GetLogger(GetType());
-            _moduleController = new ModuleController();
-            _portalId = PortalController.Instance.GetCurrentPortalSettings().PortalId;
-            _module = _moduleController.GetModuleByDefinition(_portalId, Constant.FriendlyName);
-            _moduleId = _module.ModuleID;
-            _currentUser = UserController.Instance.GetCurrentUserInfo();
-            _encryptionHelper = encryptionHelper;
-        }
+       }
 
         /// <summary>
         /// Adds a new entity of type T to the database.
@@ -96,7 +83,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
 
             // Return true if at least one row is affected by the insert; otherwise, return false.
-            return rowsEffected > 0 ? true : false;
+            return rowsEffected > 0;
         } 
         public async Task<bool> AddEasyDNNNewsCategoryList(EasyDNNNewsCategoryList entity)
         {
@@ -122,7 +109,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
 
             // Return true if at least one row is affected by the insert; otherwise, return false.
-            return rowsEffected > 0 ? true : false;
+            return rowsEffected > 0;
         }
 
         /// <summary>
