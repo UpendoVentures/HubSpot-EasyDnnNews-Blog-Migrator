@@ -17,24 +17,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
     {
         private readonly IDbConnection _connection;
         private readonly ILog _logger;
-        private readonly ModuleController _moduleController;
-        private readonly int _portalId;
-        private readonly ModuleInfo _module;
-        private readonly int _moduleId;
-        private readonly UserInfo _currentUser;
-        private readonly IEncryptionHelper _encryptionHelper;
-        private readonly string ResourceFile = Constant.ResxRoot;
 
-        public EasyDNNNewsCategoriesRepository(DapperContext context, IEncryptionHelper encryptionHelper) : base(context)
+        public EasyDNNNewsCategoriesRepository(DapperContext context) : base(context)
         {
             _connection = context.CreateConnection();
             _logger = LoggerSource.Instance.GetLogger(GetType());
-            _moduleController = new ModuleController();
-            _portalId = PortalController.Instance.GetCurrentPortalSettings().PortalId;
-            _module = _moduleController.GetModuleByDefinition(_portalId, Constant.FriendlyName);
-            _moduleId = _module.ModuleID;
-            _currentUser = UserController.Instance.GetCurrentUserInfo();
-            _encryptionHelper = encryptionHelper;
         }
 
         public async Task<bool> AddEasyDNNNewsCategories(EasyDNNNewsCategories entity)
