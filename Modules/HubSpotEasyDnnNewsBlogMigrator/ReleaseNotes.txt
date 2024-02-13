@@ -1,0 +1,10 @@
+<h3>HubSpotEasyDnnNewsBlogMigrator</h3>
+<p class="Contributor">
+	UpendoVentures <br />
+	<a href="mailto:support@upendoventures.com">support@upendoventures.com</a>
+</p>
+<hr/>
+<div class="License">
+	<h3>About the HubSpotEasyDnnNewsBlogMigrator</h3>
+	<p>This module is intended as an example of how to build DNN Modules with VueJS.</p>
+</div>

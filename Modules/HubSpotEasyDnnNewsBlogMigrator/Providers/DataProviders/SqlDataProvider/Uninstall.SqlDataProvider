@@ -1,0 +1,5 @@
+-- Uninstall.SqlDataProvider
+DECLARE @ModuleId INT;
+SET @ModuleId = (SELECT ModuleId FROM {databaseOwner}[{objectQualifier}Modules] WHERE ModuleDefID = (SELECT ModuleDefID FROM {databaseOwner}[{objectQualifier}ModuleDefinitions] WHERE FriendlyName = 'HubSpotEasyDnnNewsBlogMigrator'));
+
+DELETE FROM {databaseOwner}[{objectQualifier}ModuleSettings] WHERE ModuleId = @ModuleId;

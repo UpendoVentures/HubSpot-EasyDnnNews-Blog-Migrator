@@ -1,0 +1,71 @@
+.form-container {
+    margin: 20px !important;
+}
+
+.display_block {
+    display: block !important;
+}
+
+.display_none {
+    display: none !important;
+}
+
+#addEditMovil, #deleteModal {
+    margin-top: 100px;
+}
+
+.ml20{
+    margin-left: 20px !important;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.col-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+.col-4 {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+}
+
+.col-5 {
+    flex: 0 0 41.666667%;
+    max-width: 41.666667%;
+}
+
+.col-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.col-7 {
+    flex: 0 0 58.333333%;
+    max-width: 58.333333%;
+}
+
+.col-8 {
+    flex: 0 0 66.666667%;
+    max-width: 66.666667%;
+}
+
+.custom-module .dnnFormItem input[type="text"],
+.custom-module .dnnFormItem input[type="password"],
+.custom-module .dnnFormItem input[type="email"],
+.custom-module .dnnFormItem input[type="tel"],
+.custom-module .dnnFormItem select,
+.custom-module .dnnFormItem textarea {
+    width: 100%;
+}
+
+.custom-module .dnnFormItem {
+    display: flex;
+    align-items: center;
+}
+
+.custom-module .dnnLabel {
+    text-align: left;
+}
