@@ -19,7 +19,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
     [ValidateAntiForgeryToken]
     public class HubspotController : DnnApiController
     {
-        private readonly string ResourceFile = Constant.ResxPartialRoot;
+        private readonly string ResourceFile = Constant.ResxRoot; 
         private readonly IHubspotRepository _hubspotRepository;
 
         public HubspotController(IHubspotRepository hubspotRepository)
@@ -94,11 +94,14 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             }
             else
             {
-                var message = new HttpResponseMessage(HttpStatusCode.BadRequest)
+                var blogResponse = new BlogResponse
                 {
-                    Content = new StringContent(Localization.GetString("MissingAccessToken.Text", ResourceFile))
+                    Message = Localization.GetString("MissingAccessToken.Text", ResourceFile),
+                    Status = "error",
+                    Results = new List<Blog>(),
+                    Total = 0
                 };
-                throw new HttpResponseException(message);
+                return blogResponse;
             }
         }
 
@@ -108,7 +111,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             if (Request.Headers.TryGetValues("AccessToken", out IEnumerable<string> headerValues))
             {
                 var accessToken = headerValues.FirstOrDefault();
-                return Ok( await _hubspotRepository.MigratePosts(accessToken));
+                return Ok(await _hubspotRepository.MigratePosts(accessToken));
             }
             else
             {
