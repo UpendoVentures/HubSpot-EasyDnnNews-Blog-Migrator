@@ -50,14 +50,49 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants
         /// </summary>
         public const string DBTABLE_PREFIX = "HubSpotEasyDnnNewsBlogMigrator";
 
+        /// <summary>
+        /// The ClientId key used for OAuth authentication.
+        /// </summary>
         public const string ClientId = "ClientId";
+
+        /// <summary>
+        /// The ClientSecret key used for OAuth authentication.
+        /// </summary>
         public const string ClientSecret = "ClientSecret";
+
+        /// <summary>
+        /// The RedirectUri key used for OAuth authentication.
+        /// </summary>
         public const string RedirectUri = "RedirectUri";
+
+        /// <summary>
+        /// The Code key used for OAuth authentication.
+        /// </summary>
         public const string Code = "Code";
+
+        /// <summary>
+        /// The Scope key used for OAuth authentication.
+        /// </summary>
         public const string Scope = "Scope";
+
+        /// <summary>
+        /// The friendly name of the module.
+        /// </summary>
         public const string FriendlyName = "HubSpotEasyDnnNewsBlogMigrator";
+
+        /// <summary>
+        /// The key used for AES encryption.
+        /// </summary>
         public const string PhraseKey = "0123456789abcdef0123456789abcdef";
+
+        /// <summary>
+        /// The initialization vector used for AES encryption.
+        /// </summary>
         public const string PhraseIv = "abcdef0123456789";
+
+        /// <summary>
+        /// The default category name.
+        /// </summary>
         public const string DefaultCategoryName = "Uncategorized";
     }
 }
