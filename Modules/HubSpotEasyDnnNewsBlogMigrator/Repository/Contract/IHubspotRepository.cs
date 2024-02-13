@@ -10,7 +10,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contr
     public interface IHubspotRepository
     {
         Task<HubspotSetting> GetSettings();
-        Task<HubspotSetting> UpdateSettings(HubspotSetting settings);
+        HubspotSetting UpdateSettings(HubspotSetting settings);
         Task<TokenResponse> OAuthCallback(HubspotSetting settings);
         Task<BlogResponse> GetPosts(string accessToken);
         Task<int> MigratePosts(string accessToken);
