@@ -14,19 +14,30 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
 {
+    /// <summary>
+    /// Controller for handling HubSpot related operations.
+    /// </summary>
     [SupportedModules(Constant.SupportedModules)]
     [DnnModuleAuthorize(AccessLevel = SecurityAccessLevel.Edit)]
     [ValidateAntiForgeryToken]
     public class HubspotController : DnnApiController
     {
-        private readonly string ResourceFile = Constant.ResxRoot; 
+        private readonly string ResourceFile = Constant.ResxRoot;
         private readonly IHubspotRepository _hubspotRepository;
 
+        /// <summary>
+        /// Constructor for HubspotController.
+        /// </summary>
+        /// <param name="hubspotRepository">The repository to use for HubSpot related operations.</param>
         public HubspotController(IHubspotRepository hubspotRepository)
         {
             _hubspotRepository = hubspotRepository;
         }
 
+        /// <summary>
+        /// Retrieves the current settings.
+        /// </summary>
+        /// <returns>The current settings.</returns>
         [HttpGet]
         public async Task<IHttpActionResult> GetSettings()
         {
@@ -34,6 +45,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             return Ok(settings);
         }
 
+        /// <summary>
+        /// Updates the settings.
+        /// </summary>
+        /// <param name="settings">The new settings to apply.</param>
+        /// <returns>The result of the update operation.</returns>
         [HttpPost]
         public IHttpActionResult UpdateSettings(HubspotSetting settings)
         {
@@ -41,6 +57,14 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             return Ok(result);
         }
 
+        /// <summary>
+        /// Initiates the OAuth process by returning the URL for the HubSpot OAuth endpoint.
+        /// The client ID and redirect URI are retrieved from the settings.
+        /// </summary>
+        /// <returns>
+        /// If the client ID or redirect URI are missing, returns a BadRequest result.
+        /// Otherwise, returns an Ok result with the HubSpot OAuth URL.
+        /// </returns>
         [HttpGet]
         public IHttpActionResult InitiateOAuth()
         {
@@ -58,7 +82,15 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             }
         }
 
-
+        /// <summary>
+        /// Handles the OAuth callback from HubSpot. Uses the provided code to retrieve an access token.
+        /// The client ID, redirect URI, and client secret are retrieved from the settings.
+        /// </summary>
+        /// <param name="code">The authorization code provided by HubSpot.</param>
+        /// <returns>
+        /// If the client ID, redirect URI, or client secret are missing, returns a BadRequest result.
+        /// Otherwise, returns an Ok result with the result of the OAuth callback operation.
+        /// </returns>
         [HttpPost]
         public async Task<IHttpActionResult> OAuthCallback([FromBody] string code)
         {
@@ -105,6 +137,10 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             }
         }
 
+        /// <summary>
+        /// Migrates posts from HubSpot to the local system.
+        /// </summary>
+        /// <returns>The result of the migration operation.</returns>
         [HttpGet]
         public async Task<IHttpActionResult> MigratePosts()
         {
