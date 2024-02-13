@@ -11,9 +11,14 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants
     public class Constant
     {
         /// <summary>
-        /// The root path for .resx files.
+        /// The partial root path for .resx files.
         /// </summary>
         public const string ResxPartialRoot = "~\\DesktopModules\\HubSpotEasyDnnNewsBlogMigrator\\App_LocalResources\\";
+
+        /// <summary>
+        /// The root path for .resx files.
+        /// </summary>
+        public const string ResxRoot = "~\\DesktopModules\\HubSpotEasyDnnNewsBlogMigrator\\App_LocalResources\\View.resx";
 
         /// <summary>
         /// The attribute name used in XML data nodes.
