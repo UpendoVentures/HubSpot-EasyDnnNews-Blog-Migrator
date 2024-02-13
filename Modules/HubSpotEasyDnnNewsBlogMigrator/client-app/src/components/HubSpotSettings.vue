@@ -57,10 +57,10 @@ const getSettings = async () => {
 const handleSubmit = async (event) => {
     event.preventDefault();
     const data = {
-        ClientId: clientId,
-        ClientSecret: clientSecret,
-        RedirectUri: redirectUri,
-        Scope: scope
+        ClientId: clientId.value,
+        ClientSecret: clientSecret.value,
+        RedirectUri: redirectUri.value,
+        Scope: scope.value
     };
     const response = await makeRequest(dnnConfig, 'UpdateSettings', 'post', data);
     console.log(response);
