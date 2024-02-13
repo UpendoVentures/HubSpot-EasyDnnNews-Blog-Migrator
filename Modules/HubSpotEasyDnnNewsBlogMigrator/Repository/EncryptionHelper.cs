@@ -7,8 +7,16 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
 {
+    /// <summary>
+    /// Helper class for encryption and decryption.
+    /// </summary>
     public class EncryptionHelper: IEncryptionHelper
     {
+        /// <summary>
+        /// Encrypts a string using AES encryption.
+        /// </summary>
+        /// <param name="item">The string to encrypt.</param>
+        /// <returns>The encrypted string, in Base64 format.</returns>
         public string EncryptString(string item)
         {
             byte[] keyBytes = Encoding.UTF8.GetBytes(Constant.PhraseKey);
@@ -35,6 +43,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             }
         }
 
+        /// <summary>
+        /// Decrypts a string that was encrypted using AES encryption.
+        /// </summary>
+        /// <param name="item">The encrypted string, in Base64 format.</param>
+        /// <returns>The decrypted string.</returns>
         public string DecryptString(string item)
         {
             byte[] keyBytes = Encoding.UTF8.GetBytes(Constant.PhraseKey);
