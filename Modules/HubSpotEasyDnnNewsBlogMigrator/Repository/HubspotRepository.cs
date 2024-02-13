@@ -6,7 +6,6 @@ using DotNetNuke.Instrumentation;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Net.Http;
 using System.Threading.Tasks;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
@@ -17,6 +16,9 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
+    /// <summary>
+    /// Repository for interacting with Hubspot data.
+    /// </summary>
     public class HubspotRepository : GenericRepository<EasyDNNNews>, IHubspotRepository
     {
         private readonly ILog _logger;
@@ -30,6 +32,14 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly IEasyDNNNewsCategoriesRepository _easyDNNNewsCategoriesRepository;
         private readonly IEasyDNNNewsCategoryListRepository _easyDNNNewsCategoryListRepository;
 
+        /// <summary>
+        /// Constructor for the HubspotRepository.
+        /// </summary>
+        /// <param name="context">The Dapper context for database operations.</param>
+        /// <param name="easyDNNNewsRepository">Repository for EasyDNNNews operations.</param>
+        /// <param name="easyDNNNewsCategoriesRepository">Repository for EasyDNNNews categories operations.</param>
+        /// <param name="easyDNNNewsCategoryListRepository">Repository for EasyDNNNews category list operations.</param>
+        /// <param name="encryptionHelper">Helper for encryption operations.</param>
         public HubspotRepository(DapperContext context, IEasyDNNNewsRepository easyDNNNewsRepository,
             IEasyDNNNewsCategoriesRepository easyDNNNewsCategoriesRepository, IEasyDNNNewsCategoryListRepository easyDNNNewsCategoryListRepository, IEncryptionHelper encryptionHelper) : base(context)
         {
@@ -45,6 +55,10 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             _easyDNNNewsCategoryListRepository = easyDNNNewsCategoryListRepository;
         }
 
+        /// <summary>
+        /// Retrieves the Hubspot settings.
+        /// </summary>
+        /// <returns>The Hubspot settings.</returns>
         public new async Task<HubspotSetting> GetSettings()
         {
             var setting = new HubspotSetting { };
@@ -61,9 +75,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             return setting;
         }
 
-
-
-        public new async Task<HubspotSetting> UpdateSettings(HubspotSetting settings)
+        /// <summary>
+        /// Updates the Hubspot settings.
+        /// </summary>
+        /// <param name="settings">The new Hubspot settings.</param>
+        /// <returns>The updated Hubspot settings.</returns>
+        public new HubspotSetting UpdateSettings(HubspotSetting settings)
         {
             var moduleController = new ModuleController();
             moduleController.UpdateModuleSetting(_moduleId, Constant.ClientId, _encryptionHelper.EncryptString(settings.ClientId.Trim()));
@@ -74,6 +91,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             return settings;
         }
 
+        /// <summary>
+        /// Handles the OAuth callback from Hubspot.
+        /// </summary>
+        /// <param name="settings">The Hubspot settings.</param>
+        /// <returns>The response from the OAuth callback.</returns>
         public new async Task<TokenResponse> OAuthCallback(HubspotSetting settings)
         {
             var tokenResponse = new TokenResponse { };
@@ -106,6 +128,13 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 return tokenResponse;
             }
         }
+
+
+        /// <summary>
+        /// Retrieves the blog posts from Hubspot.
+        /// </summary>
+        /// <param name="accessToken">The access token for Hubspot.</param>
+        /// <returns>The blog posts from Hubspot.</returns>
         public new async Task<BlogResponse> GetPosts(string accessToken)
         {
             var blogResponse = new BlogResponse { };
@@ -128,6 +157,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
         }
 
+        /// <summary>
+        /// Migrates the blog posts from Hubspot.
+        /// </summary>
+        /// <param name="accessToken">The access token for Hubspot.</param>
+        /// <returns>The number of blog posts migrated.</returns>
         public new async Task<int> MigratePosts(string accessToken)
         {
             var result = 0;
@@ -243,7 +277,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 };
                                 newEasyDNNNewsCategoryList.CategoryID = await _easyDNNNewsCategoryListRepository.AddEasyDNNNewsCategoryList(newEasyDNNNewsCategoryList);
                             }
-                            if (easyDNNNews.ArticleID!=0)
+                            if (easyDNNNews.ArticleID != 0)
                             {
                                 var easyDNNNewsCategories = new EasyDNNNewsCategories()
                                 {
