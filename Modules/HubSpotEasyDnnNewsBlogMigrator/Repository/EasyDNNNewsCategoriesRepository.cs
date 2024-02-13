@@ -1,29 +1,38 @@
-﻿using DotNetNuke.Entities.Modules;
-using DotNetNuke.Entities.Portals;
-using DotNetNuke.Entities.Users;
-using DotNetNuke.Instrumentation;
+﻿using DotNetNuke.Instrumentation;
 using System;
 using System.Data;
 using Dapper;
 using System.Threading.Tasks;
-using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Data;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
+    /// <summary>
+    /// Repository for interacting with EasyDNNNewsCategories data.
+    /// </summary>
     public class EasyDNNNewsCategoriesRepository : GenericRepository<EasyDNNNewsCategories>, IEasyDNNNewsCategoriesRepository
     {
         private readonly IDbConnection _connection;
         private readonly ILog _logger;
 
+        /// <summary>
+        /// Constructor for the EasyDNNNewsCategoriesRepository.
+        /// </summary>
+        /// <param name="context">The Dapper context for database operations.</param>
         public EasyDNNNewsCategoriesRepository(DapperContext context) : base(context)
         {
             _connection = context.CreateConnection();
             _logger = LoggerSource.Instance.GetLogger(GetType());
         }
 
+
+        /// <summary>
+        /// Adds a new EasyDNNNewsCategories entity to the database.
+        /// </summary>
+        /// <param name="entity">The EasyDNNNewsCategories entity to add.</param>
+        /// <returns>True if the entity was added successfully, false otherwise.</returns>
         public async Task<bool> AddEasyDNNNewsCategories(EasyDNNNewsCategories entity)
         {
             int rowsEffected = 0;
