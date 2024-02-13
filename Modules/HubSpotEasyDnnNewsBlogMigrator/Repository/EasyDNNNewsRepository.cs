@@ -59,6 +59,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             return insertedId;
         }
 
+        /// <summary>
+        /// Retrieves a list of EasyDNNNews by title.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         public async Task<bool> AddEasyDNNNewsCategories(EasyDNNNewsCategories entity)
         {
             int rowsEffected = 0;
@@ -84,7 +89,13 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 
             // Return true if at least one row is affected by the insert; otherwise, return false.
             return rowsEffected > 0;
-        } 
+        }
+        
+        /// <summary>
+        /// Retrieves a list of EasyDNNNewsCategories by title.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         public async Task<bool> AddEasyDNNNewsCategoryList(EasyDNNNewsCategoryList entity)
         {
             int rowsEffected = 0;
