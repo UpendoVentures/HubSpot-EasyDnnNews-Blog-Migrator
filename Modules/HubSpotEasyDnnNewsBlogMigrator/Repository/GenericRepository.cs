@@ -67,7 +67,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
 
             // Return true if at least one row is affected by the insert; otherwise, return false.
-            return rowsEffected > 0 ? true : false;
+            return rowsEffected > 0;
         }
 
 
@@ -102,7 +102,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
 
             // Return true if at least one row is affected by the delete; otherwise, return false.
-            return rowsEffected > 0 ? true : false;
+            return rowsEffected > 0;
         }
 
 
@@ -222,7 +222,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
 
             // Return true if at least one row is affected by the update; otherwise, return false.
-            return rowsEffected > 0 ? true : false;
+            return rowsEffected > 0;
         }
 
 
@@ -234,7 +234,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         /// </returns>
         public string GetTableName()
         {
-            string tableName = string.Empty;
             var type = typeof(T);
 
             // Attempt to retrieve the TableAttribute for the entity type.
@@ -243,7 +242,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             if (tableAttr != null)
             {
                 // If a TableAttribute is found, use its specified table name.
-                tableName = tableAttr.Name;
+               var tableName = tableAttr.Name;
                 return tableName;
             }
 
