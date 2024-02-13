@@ -48,7 +48,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
 
             // Return true if at least one row is affected by the insert; otherwise, return false.
-            return rowsEffected > 0 ? true : false;
+            return rowsEffected > 0;
         }
     }
 }
