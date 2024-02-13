@@ -1,21 +1,15 @@
-﻿using DotNetNuke.Entities.Controllers;
-using DotNetNuke.Entities.Modules;
+﻿using DotNetNuke.Entities.Modules;
 using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Instrumentation;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using Dapper;
-using System.Net.Http;
 using System.Threading.Tasks;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Data;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
-using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
-using DotNetNuke.Services.Localization;
 using System.Linq;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
@@ -30,7 +24,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly int _moduleId;
         private readonly UserInfo _currentUser;
         private readonly IEncryptionHelper _encryptionHelper;
-        private readonly string ResourceFile = Constant.ResxPartialRoot;
+        private readonly string ResourceFile = Constant.ResxRoot;
 
         public EasyDNNNewsRepository(DapperContext context, IEncryptionHelper encryptionHelper) : base(context)
         {
