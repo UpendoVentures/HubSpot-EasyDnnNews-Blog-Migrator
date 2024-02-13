@@ -30,7 +30,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly int _moduleId;
         private readonly UserInfo _currentUser;
         private readonly IEncryptionHelper _encryptionHelper;
-        private readonly string ResourceFile = Constant.ResxPartialRoot;
+        private readonly string ResourceFile = Constant.ResxRoot;
 
         public EasyDNNNewsCategoryListRepository(DapperContext context, IEncryptionHelper encryptionHelper) : base(context)
         {
