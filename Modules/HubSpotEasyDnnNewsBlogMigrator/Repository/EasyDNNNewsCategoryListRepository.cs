@@ -27,7 +27,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly ModuleController _moduleController;
         private readonly int _portalId;
         private readonly ModuleInfo _module;
-        private readonly int _moduleId;
         private readonly UserInfo _currentUser;
         private readonly IEncryptionHelper _encryptionHelper;
         private readonly string ResourceFile = Constant.ResxRoot;
@@ -39,7 +38,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             _moduleController = new ModuleController();
             _portalId = PortalController.Instance.GetCurrentPortalSettings().PortalId;
             _module = _moduleController.GetModuleByDefinition(_portalId, Constant.FriendlyName);
-            _moduleId = _module.ModuleID;
             _currentUser = UserController.Instance.GetCurrentUserInfo();
             _encryptionHelper = encryptionHelper;
         }
