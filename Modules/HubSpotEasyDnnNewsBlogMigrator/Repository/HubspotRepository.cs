@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using Dapper;
 using System.Net.Http;
 using System.Threading.Tasks;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
@@ -15,9 +14,6 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Data;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
-using DotNetNuke.Services.Localization;
-using System.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -34,7 +30,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly IEasyDNNNewsRepository _easyDNNNewsRepository;
         private readonly IEasyDNNNewsCategoriesRepository _easyDNNNewsCategoriesRepository;
         private readonly IEasyDNNNewsCategoryListRepository _easyDNNNewsCategoryListRepository;
-        private readonly string ResourceFile = Constant.ResxPartialRoot;
+        private readonly string ResourceFile = Constant.ResxRoot;
 
         public HubspotRepository(DapperContext context, IEasyDNNNewsRepository easyDNNNewsRepository,
             IEasyDNNNewsCategoriesRepository easyDNNNewsCategoriesRepository, IEasyDNNNewsCategoryListRepository easyDNNNewsCategoryListRepository, IEncryptionHelper encryptionHelper) : base(context)
