@@ -19,7 +19,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
     public class HubspotRepository : GenericRepository<EasyDNNNews>, IHubspotRepository
     {
-        private readonly IDbConnection _connection;
         private readonly ILog _logger;
         private readonly ModuleController _moduleController;
         private readonly int _portalId;
@@ -30,12 +29,10 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly IEasyDNNNewsRepository _easyDNNNewsRepository;
         private readonly IEasyDNNNewsCategoriesRepository _easyDNNNewsCategoriesRepository;
         private readonly IEasyDNNNewsCategoryListRepository _easyDNNNewsCategoryListRepository;
-        private readonly string ResourceFile = Constant.ResxRoot;
 
         public HubspotRepository(DapperContext context, IEasyDNNNewsRepository easyDNNNewsRepository,
             IEasyDNNNewsCategoriesRepository easyDNNNewsCategoriesRepository, IEasyDNNNewsCategoryListRepository easyDNNNewsCategoryListRepository, IEncryptionHelper encryptionHelper) : base(context)
         {
-            _connection = context.CreateConnection();
             _logger = LoggerSource.Instance.GetLogger(GetType());
             _moduleController = new ModuleController();
             _portalId = PortalController.Instance.GetCurrentPortalSettings().PortalId;
@@ -85,16 +82,17 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 HostController.Instance.Update(Constant.Code, settings.Code.Trim());
                 using (var client = new HttpClient())
                 {
-                    var request = new HttpRequestMessage(HttpMethod.Post, "https://api.hubapi.com/oauth/v1/token");
-
-                    request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-                {
-                    {"grant_type", "authorization_code"},
-                    {"client_id", settings.ClientId},
-                    {"client_secret", settings.ClientSecret},
-                    {"redirect_uri", settings.RedirectUri},
-                    {"code", settings.Code}
-                });
+                    var request = new HttpRequestMessage(HttpMethod.Post, "https://api.hubapi.com/oauth/v1/token")
+                    {
+                        Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                        {
+                            {"grant_type", "authorization_code"},
+                            {"client_id", settings.ClientId},
+                            {"client_secret", settings.ClientSecret},
+                            {"redirect_uri", settings.RedirectUri},
+                            {"code", settings.Code}
+                        })
+                    };
 
                     var response = await client.SendAsync(request);
                     var content = await response.Content.ReadAsStringAsync();
