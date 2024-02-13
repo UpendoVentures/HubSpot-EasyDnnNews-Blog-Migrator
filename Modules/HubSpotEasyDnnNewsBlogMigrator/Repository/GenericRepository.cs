@@ -16,10 +16,19 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
+    /// <summary>
+    /// Repository for interacting with generic data.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         private readonly IDbConnection _connection;
         private readonly ILog _logger;
+
+        /// <summary>
+        /// Constructor for the GenericRepository.
+        /// </summary>
+        /// <param name="context">The Dapper context for database operations.</param>
 
         public GenericRepository(DapperContext context)
         {
