@@ -1,16 +1,18 @@
-﻿using DotNetNuke.Entities.Modules;
-using DotNetNuke.Entities.Portals;
-using DotNetNuke.Entities.Users;
-using DotNetNuke.Instrumentation;
+﻿using DotNetNuke.Instrumentation;
 using System;
 using System.Data;
 using Dapper;
 using System.Threading.Tasks;
-using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Data;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using System.Linq;
+using System.IO;
+using DotNetNuke.Entities.Portals;
+using System.Collections.Generic;
+using System.Web.Hosting;
+using DotNetNuke.Services.Localization;
+using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -18,15 +20,45 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
     {
         private readonly IDbConnection _connection;
         private readonly ILog _logger;
+        private readonly int _portalId;
+        private readonly string ResourceFile = Constant.ResxRoot;
 
         public EasyDNNNewsRepository(DapperContext context) : base(context)
         {
             _connection = context.CreateConnection();
             _logger = LoggerSource.Instance.GetLogger(GetType());
-       }
+            _portalId = PortalController.Instance.GetCurrentPortalSettings().PortalId;
+        }
 
         /// <summary>
-        /// Adds a new entity of type T to the database.
+        /// Retrieves a list of EasyDNNNews.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<EasyDNNNews>> GetAllEasyDNNNews()
+        {
+            IEnumerable<EasyDNNNews> result = null;
+            try
+            {
+                // Get the name of the table associated with the entity type.
+                string tableName = GetSingleTableName();
+
+                // Construct an SQL query to select all records from the table.
+                string query = $"SELECT * FROM {tableName}";
+
+                // Execute the query asynchronously and retrieve the results into a collection.
+                result = await _connection.QueryAsync<EasyDNNNews>(query);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+
+            // Return a collection containing all entities of type T found in the database.
+            return result;
+        }
+
+        /// <summary>
+        /// Adds a new entity of type EasyDNNNews to the database.
         /// </summary>
         /// <param name="entity">The entity to add to the database.</param>
         /// <returns>
@@ -60,7 +92,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         }
 
         /// <summary>
-        /// Retrieves a list of EasyDNNNews by title.
+        /// Add a EasyDNNNews entity to the database.
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -90,9 +122,9 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             // Return true if at least one row is affected by the insert; otherwise, return false.
             return rowsEffected > 0;
         }
-        
+
         /// <summary>
-        /// Retrieves a list of EasyDNNNewsCategories by title.
+        /// Add a EasyDNNNewsCategoryList entity to the database.
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -147,6 +179,96 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 
             // Return the first entity of type EasyDNNNewsCategoryList found in the database or null.
             return result;
+        }
+
+        /// <summary>
+        /// Migrate images to EasyDNNNews.
+        /// </summary>
+        /// <param name="originFolderPath"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public async Task<int> MigrateImagesToEasyDNNNews(string originFolderPath)
+        {
+            if (string.IsNullOrEmpty(originFolderPath))
+            {
+                throw new ArgumentException(Localization.GetString("OriginFolderPathCannotNullEmpty.Text", ResourceFile), nameof(originFolderPath));
+            }
+
+            var easyDNNNews = await GetAllEasyDNNNews() ?? new List<EasyDNNNews>();
+
+            var result = 0;
+            foreach (var item in easyDNNNews)
+            {
+                if (!string.IsNullOrEmpty(item.ArticleImage))
+                {
+                    try
+                    {
+                        var destinationFolderPath = Path.Combine(Path.Combine(HostingEnvironment.MapPath("~"), "Portals", _portalId.ToString(), "EasyDNNNews", item.ArticleID.ToString()));
+                        var copyImage = await CopyImageToFolderAsync(originFolderPath, item.ArticleImage, destinationFolderPath);
+                       
+                        if (copyImage)
+                        {
+                            result++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex);
+                        throw;
+                    }
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Find and copy the image to the destination folder.
+        /// </summary>
+        /// <param name="sourcePath"></param>
+        /// <param name="articleImage"></param>
+        /// <param name="destinationPath"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public async Task<bool> CopyImageToFolderAsync(string sourcePath, string articleImage, string destinationPath)
+        {
+            var copyImage = false;
+
+            if (string.IsNullOrEmpty(sourcePath))
+            {
+                throw new ArgumentException(Localization.GetString("SourcePathCannotNullEmpty.Text", ResourceFile), nameof(sourcePath));
+            }
+
+            if (string.IsNullOrEmpty(destinationPath))
+            {
+                throw new ArgumentException(Localization.GetString("DestinationPathCannotNullEmpty.Text", ResourceFile), nameof(destinationPath));
+            }
+
+            if (!Directory.Exists(destinationPath))
+            {
+                Directory.CreateDirectory(destinationPath);
+            }
+
+            // Search for the first file in sourcePath and its subdirectories.
+            var file = Directory.EnumerateFiles(sourcePath, articleImage, SearchOption.AllDirectories).FirstOrDefault();
+
+            // If the file is found, copy it to the destination.
+            if (file != null)
+            {
+                var destinationFilePath = Path.Combine(destinationPath, Path.GetFileName(file));
+                // Check if the file already exists at the destination.
+                if (!File.Exists(destinationFilePath))
+                {
+                    using (var sourceStream = new FileStream(file, FileMode.Open))
+                    {
+                        using (var destinationStream = new FileStream(destinationFilePath, FileMode.Create))
+                        {
+                            await sourceStream.CopyToAsync(destinationStream);
+                            copyImage = true;
+                        }
+                    }
+                }
+            }
+            return copyImage;
         }
     }
 }
