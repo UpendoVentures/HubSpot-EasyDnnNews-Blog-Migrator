@@ -165,4 +165,28 @@
   <data name="ThereAreTotalOf.Text" xml:space="preserve">
     <value>There are a total of</value>
   </data>
+  <data name="MigrateImage.Text" xml:space="preserve">
+    <value>Migrate images</value>
+  </data>
+  <data name="OriginFolderPath.Text" xml:space="preserve">
+    <value>Origin Folder Path</value>
+  </data>
+  <data name="DestinationPathCannotNullEmpty.Text" xml:space="preserve">
+    <value>Destination Path cannot be null or empty</value>
+  </data>
+  <data name="ImagesWereMigratedSuccessfully.Text" xml:space="preserve">
+    <value>images were migrated successfully</value>
+  </data>
+  <data name="OriginFolderPathCannotNullEmpty.Text" xml:space="preserve">
+    <value>Origin Folder Path cannot be null or empty</value>
+  </data>
+  <data name="SourcePathCannotNullEmpty.Text" xml:space="preserve">
+    <value>Source Path cannot be null or empty</value>
+  </data>
+  <data name="YouHaveMigrateAfter.Text" xml:space="preserve">
+    <value>You have to migrate the images after having migrated the posts.</value>
+  </data>
+  <data name="NoImagesMigrated.Text" xml:space="preserve">
+    <value>No images were migrated, the images already exist in the destination file or do not exist in the source folder.</value>
+  </data>
 </root>
