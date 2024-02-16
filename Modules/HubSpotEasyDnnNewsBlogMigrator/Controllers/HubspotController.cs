@@ -154,6 +154,5 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
                 return Ok(Localization.GetString("MissingAccessToken.Text", ResourceFile));
             }
         }
-
     }
 }
