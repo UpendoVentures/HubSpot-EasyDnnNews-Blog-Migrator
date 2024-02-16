@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build"
+  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -89,6 +90,7 @@
   <ItemGroup>
     <Compile Include="Components\FeatureController.cs" />
     <Compile Include="Constants\Constant.cs" />
+    <Compile Include="Controllers\EasyDNNNewsController.cs" />
     <Compile Include="Controllers\HubspotController.cs" />
     <Compile Include="Data\DapperContext.cs" />
     <Compile Include="Models\EasyDNNNews.cs" />
@@ -164,6 +166,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Module.build" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="client-app\src\components\HubSpotSettings.vue" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="client-app\src\components\MigrateImage.vue" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">.0</VisualStudioVersion>
