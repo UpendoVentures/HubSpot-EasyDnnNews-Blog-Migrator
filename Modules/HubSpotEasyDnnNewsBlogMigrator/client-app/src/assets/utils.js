@@ -40,7 +40,11 @@ export function goHome() {
 
 export function getUrlBase(serviceName) {
     const url = new URL(window.location.href);
-    return `${url.origin}/API/UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator/${serviceName}`;
+    if (serviceName != null && serviceName.length > 0) {
+        return `${url.origin}/API/UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator/${serviceName}`;
+    } else {
+        return `${url.origin}/API/UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator/`;
+    }
 }
 
 export function getCookie(name) {
