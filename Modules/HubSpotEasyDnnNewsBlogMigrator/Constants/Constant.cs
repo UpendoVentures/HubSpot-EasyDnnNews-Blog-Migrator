@@ -93,6 +93,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants
         /// <summary>
         /// The default category name.
         /// </summary>
-        public const string DefaultCategoryName = "Uncategorized";
+        public const string DefaultCategoryName = "Business";
     }
 }

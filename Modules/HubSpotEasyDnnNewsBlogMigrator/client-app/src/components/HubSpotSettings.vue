@@ -32,7 +32,7 @@
 <script setup>
 import { inject, ref, } from 'vue';
 import { makeRequest } from '../assets/api.js';
-import { getCookie } from '../assets/utils.js';
+import { getCookie, getUrlBase } from '../assets/utils.js';
 
 // Injected dependencies
 const dnnConfig = inject("dnnConfig");
@@ -45,7 +45,8 @@ let scope = ref('');
 const accessToken = getCookie('access_token');
 
 const getSettings = async () => {
-    const result = await makeRequest(dnnConfig, 'GetSettings', 'get', null, accessToken);
+    var endpoint = `${getUrlBase()}Hubspot/GetSettings`
+    const result = await makeRequest(dnnConfig, endpoint, 'get', null, accessToken);
     if (result) {
         clientId.value = result.ClientId;
         clientSecret.value = result.ClientSecret;
@@ -62,7 +63,8 @@ const handleSubmit = async (event) => {
         RedirectUri: redirectUri.value,
         Scope: scope.value
     };
-    const response = await makeRequest(dnnConfig, 'UpdateSettings', 'post', data);
+    var endpoint = `${getUrlBase()}Hubspot/UpdateSettings`
+    const response = await makeRequest(dnnConfig, endpoint, 'post', data);
     console.log(response);
 };
 

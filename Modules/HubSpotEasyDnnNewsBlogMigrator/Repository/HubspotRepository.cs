@@ -162,9 +162,9 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         /// </summary>
         /// <param name="accessToken">The access token for Hubspot.</param>
         /// <returns>The number of blog posts migrated.</returns>
-        public new async Task<int> MigratePosts(string accessToken)
+        public async Task<int> MigratePosts(string accessToken)
         {
-            var result = 0;
+            var rowsEffected = 0;
             try
             {
                 using (var client = new HttpClient())
@@ -176,16 +176,32 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                     var blogResponse = JsonConvert.DeserializeObject<BlogResponse>(content);
                     if (blogResponse.Category == "EXPIRED_AUTHENTICATION")
                     {
-                        return result;
+                        return rowsEffected;
                     }
                     var blogs = blogResponse.Results;
-                    var rowsEffected = 0;
                     try
                     {
                         // Call the base class method to perform the insert
                         foreach (var item in blogs)
                         {
                             DateTime publishDate = DateTime.Parse(item.PublishDate);
+
+                            string filename = "";
+                            try
+                            {
+                                string ArticleImage = item.FeaturedImage;
+                                if (!string.IsNullOrEmpty(ArticleImage))
+                                {
+                                    Uri uri = new Uri(ArticleImage);
+                                    filename = System.IO.Path.GetFileName(uri.LocalPath);
+                                    filename = System.Net.WebUtility.UrlDecode(filename);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                filename = "";
+                            }
+
                             var easyDNNNews = new EasyDNNNews()
                             {
                                 PortalID = _portalId,
@@ -194,7 +210,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 SubTitle = "",
                                 Summary = item.PostSummary,
                                 Article = item.PostBody,
-                                ArticleImage = item.FeaturedImage,
+                                ArticleImage = filename,
                                 DateAdded = DateTime.Parse(item.Created, null, System.Globalization.DateTimeStyles.RoundtripKind),
                                 LastModified = DateTime.Parse(item.Updated, null, System.Globalization.DateTimeStyles.RoundtripKind),
                                 PublishDate = DateTime.Parse(item.PublishDate, null, System.Globalization.DateTimeStyles.RoundtripKind),
@@ -250,7 +266,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                             easyDNNNews.ArticleID = await _easyDNNNewsRepository.AddEasyDNNNews(easyDNNNews);
                             if (easyDNNNews.ArticleID != 0)
                             {
-                                rowsEffected = +1;
+                                rowsEffected++;
                             }
                             var easyDNNNewsCategoryList = await _easyDNNNewsCategoryListRepository.GetCategoryListByName(Constant.DefaultCategoryName);
 
@@ -286,12 +302,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 };
                                 var categories = await _easyDNNNewsCategoriesRepository.AddEasyDNNNewsCategories(easyDNNNewsCategories);
                             }
-                            if (rowsEffected == 0)
-                            {
-                                return result;
-                            }
                         }
-                        return blogResponse.Total;
+                        return rowsEffected;
                     }
                     catch (Exception ex)
                     {
@@ -303,7 +315,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             {
                 _logger.Error("Error making the HTTP request", ex);
             }
-            return result;
+            return rowsEffected;
         }
     }
 }

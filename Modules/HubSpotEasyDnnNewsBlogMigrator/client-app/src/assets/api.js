@@ -1,7 +1,4 @@
 import axios from "axios";
-import { getUrlBase } from "../assets/utils";
-
-var baseUrl = `${getUrlBase("Hubspot")}`;
 
 export function antiForgeryToken() {
     const service = window?.$?.ServicesFramework?.();
@@ -24,7 +21,7 @@ export
 }
 export
     async function makeRequest(dnnConfig, endpoint, method = 'get', data = null, accessToken = null) {
-    const url = `${baseUrl}/${endpoint}`;
+    const url = `${endpoint}`;
     let headers = {
         'Content-Type': 'application/json',
         moduleid: dnnConfig.moduleId,
