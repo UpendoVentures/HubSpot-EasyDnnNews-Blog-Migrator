@@ -13,6 +13,7 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Data;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
+using static Telerik.Web.UI.OrgChartStyles;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -31,6 +32,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly IEasyDNNNewsRepository _easyDNNNewsRepository;
         private readonly IEasyDNNNewsCategoriesRepository _easyDNNNewsCategoriesRepository;
         private readonly IEasyDNNNewsCategoryListRepository _easyDNNNewsCategoryListRepository;
+        private readonly IEasyDNNNewsGenericRepository<EasyDNNNewsNewTags> _tagsRepository;
+        private readonly IEasyDNNNewsGenericRepository<EasyDNNNewsTagsItems> _tagsItemsRepository;
 
         /// <summary>
         /// Constructor for the HubspotRepository.
@@ -41,7 +44,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         /// <param name="easyDNNNewsCategoryListRepository">Repository for EasyDNNNews category list operations.</param>
         /// <param name="encryptionHelper">Helper for encryption operations.</param>
         public HubspotRepository(DapperContext context, IEasyDNNNewsRepository easyDNNNewsRepository,
-            IEasyDNNNewsCategoriesRepository easyDNNNewsCategoriesRepository, IEasyDNNNewsCategoryListRepository easyDNNNewsCategoryListRepository, IEncryptionHelper encryptionHelper) : base(context)
+            IEasyDNNNewsCategoriesRepository easyDNNNewsCategoriesRepository, IEasyDNNNewsCategoryListRepository easyDNNNewsCategoryListRepository, IEncryptionHelper encryptionHelper,
+            IEasyDNNNewsGenericRepository<EasyDNNNewsNewTags> tagsRepository, IEasyDNNNewsGenericRepository<EasyDNNNewsTagsItems> tagsItemsRepository) : base(context)
         {
             _logger = LoggerSource.Instance.GetLogger(GetType());
             _moduleController = new ModuleController();
@@ -53,6 +57,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             _easyDNNNewsRepository = easyDNNNewsRepository;
             _easyDNNNewsCategoriesRepository = easyDNNNewsCategoriesRepository;
             _easyDNNNewsCategoryListRepository = easyDNNNewsCategoryListRepository;
+            _tagsRepository = tagsRepository;
+            _tagsItemsRepository = tagsItemsRepository;
         }
 
         /// <summary>
@@ -218,7 +224,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 NumberOfViews = 0,
                                 RatingValue = 0,
                                 RatingCount = 0,
-                                TitleLink = item.HtmlTitle.Replace(" ", "-"),
+                                TitleLink = item.HtmlTitle.Replace(" ", "-").Replace(".", "-"),
                                 DetailType = "Text",
                                 DetailsTemplate = "DEFAULT",
                                 DetailsTheme = "DEFAULT",
@@ -245,7 +251,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 ArticleImageSet = true,
                                 GoodVotesCount = 0,
                                 BadVotesCount = 0,
-                                Published = false,
+                                Published = true,
                                 WorkflowId = 1,
                                 RevisionHistoryEntryID = 0,
                                 DetailMediaType = "Image",
@@ -268,39 +274,20 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                             {
                                 rowsEffected++;
                             }
-                            var easyDNNNewsCategoryList = await _easyDNNNewsCategoryListRepository.GetCategoryListByName(Constant.DefaultCategoryName);
 
-                            var newEasyDNNNewsCategoryList = new EasyDNNNewsCategoryList();
-                            if (easyDNNNewsCategoryList == null)
-                            {
-                                newEasyDNNNewsCategoryList = new EasyDNNNewsCategoryList
-                                {
-                                    CategoryName = Constant.DefaultCategoryName,
-                                    PortalID = _portalId,
-                                    Position = 1,
-                                    ParentCategory = 0,
-                                    Level = 0,
-                                    CategoryURL = null,
-                                    CategoryImage = null,
-                                    CategoryText = null,
-                                    Color = "default",
-                                    SearchableText = Constant.DefaultCategoryName,
-                                    QueryLink = null,
-                                    TitleTag = null,
-                                    MetaDecription = null,
-                                    MetaKeywords = null,
-                                    AddRobotsFollowTag = null,
-                                };
-                                newEasyDNNNewsCategoryList.CategoryID = await _easyDNNNewsCategoryListRepository.AddEasyDNNNewsCategoryList(newEasyDNNNewsCategoryList);
-                            }
                             if (easyDNNNews.ArticleID != 0)
                             {
-                                var easyDNNNewsCategories = new EasyDNNNewsCategories()
+                                var defaultCategoryList = await AddCategoryListIfNotExit(Constant.DefaultCategoryName, 0, 0);
+                                await Add_EasyDNNNewsCategories(easyDNNNews.ArticleID, defaultCategoryList.CategoryID);
+
+                                var defaultCategoryName = $"{Constant.DefaultCategoryName}{item.CategoryId}";
+                                var easyDNNNewsCategoryList = await AddCategoryListIfNotExit(defaultCategoryName, defaultCategoryList.CategoryID, 1);
+                                await Add_EasyDNNNewsCategories(easyDNNNews.ArticleID, easyDNNNewsCategoryList.CategoryID);
+
+                                if (item.TagIds.Count > 0)
                                 {
-                                    ArticleID = easyDNNNews.ArticleID,
-                                    CategoryID = easyDNNNewsCategoryList == null ? newEasyDNNNewsCategoryList.CategoryID : easyDNNNewsCategoryList.CategoryID,
-                                };
-                                var categories = await _easyDNNNewsCategoriesRepository.AddEasyDNNNewsCategories(easyDNNNewsCategories);
+                                    await HandleTags(easyDNNNews.ArticleID, item.TagIds);
+                                }
                             }
                         }
                         return rowsEffected;
@@ -316,6 +303,131 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 _logger.Error("Error making the HTTP request", ex);
             }
             return rowsEffected;
+        }
+
+        /// <summary>
+        /// Adds the EasyDNNNewsCategoryList if it does not exist.
+        /// </summary>
+        /// <param name="defaultCategoryName"></param>
+        /// <param name="parentCategoryId"></param>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public async Task<EasyDNNNewsCategoryList> AddCategoryListIfNotExit(string defaultCategoryName, int parentCategoryId, int level)
+        {
+            var easyDNNNewsCategoryList = await _easyDNNNewsCategoryListRepository.GetCategoryListByName(defaultCategoryName);
+
+            if (easyDNNNewsCategoryList == null)
+            {
+                var newEasyDNNNewsCategoryList = new EasyDNNNewsCategoryList
+                {
+                    CategoryName = defaultCategoryName,
+                    PortalID = _portalId,
+                    Position = 1,
+                    ParentCategory = parentCategoryId,
+                    Level = level,
+                    CategoryURL = null,
+                    CategoryImage = null,
+                    CategoryText = null,
+                    Color = "default",
+                    SearchableText = defaultCategoryName,
+                    QueryLink = null,
+                    TitleTag = null,
+                    MetaDecription = null,
+                    MetaKeywords = null,
+                    AddRobotsFollowTag = null,
+                };
+                newEasyDNNNewsCategoryList.CategoryID = await _easyDNNNewsCategoryListRepository.AddEasyDNNNewsCategoryList(newEasyDNNNewsCategoryList);
+                return newEasyDNNNewsCategoryList;
+            }
+            return easyDNNNewsCategoryList;
+        }
+
+        /// <summary>
+        /// Adds the EasyDNNNewsCategories.
+        /// </summary>
+        /// <param name="articleID"></param>
+        /// <param name="categoryID"></param>
+        /// <returns></returns>
+        public async Task Add_EasyDNNNewsCategories(int articleID, int categoryID)
+        {
+            var easyDNNNewsCategories = new EasyDNNNewsCategories()
+            {
+                ArticleID = articleID,
+                CategoryID = categoryID,
+            };
+            try
+            {
+                await _easyDNNNewsCategoriesRepository.AddEasyDNNNewsCategories(easyDNNNewsCategories);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Error in the request", ex);
+            }
+        }
+
+        /// <summary>
+        /// Handles the tags for the blog posts.
+        /// </summary>
+        /// <param name="articleID"></param>
+        /// <param name="tagIds"></param>
+        /// <returns></returns>
+        public async Task HandleTags(int articleID, List<long> tagIds)
+        {
+            if (tagIds.Count > 0)
+            {
+                foreach (long tagId in tagIds)
+                {
+                    var name = $"hubspotTagId{tagId}";
+                    var columnName = "Name";
+                    var tag = await _tagsRepository.GetByNameAsync(name, columnName);
+
+                    if (tag == null)
+                    {
+                        var newTag = new EasyDNNNewsNewTags
+                        {
+                            Name = name,
+                            PortalID = _portalId,
+                            DateCreated = DateTime.Now
+                        };
+                        var addNewTag = await _tagsRepository.AddAsync(newTag);
+                        if (addNewTag)
+                        {
+                            var tagsItems = new EasyDNNNewsTagsItems
+                            {
+                                ArticleID = articleID,
+                                TagID = newTag.TagID,
+                                DateAdded = DateTime.Now,
+                            };
+                            try
+                            {
+                                await _tagsItemsRepository.AddAsync(tagsItems);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error("Error in the request", ex);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var tagsItems = new EasyDNNNewsTagsItems
+                        {
+                            ArticleID = articleID,
+                            TagID = tag.TagID,
+                            DateAdded = DateTime.Now,
+                        };
+                        try
+                        {
+                            await _tagsItemsRepository.AddAsync(tagsItems);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Error("Error in the request", ex);
+                        }
+                    }
+                }
+            }
+
         }
     }
 }

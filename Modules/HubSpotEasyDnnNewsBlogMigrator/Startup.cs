@@ -4,6 +4,7 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services;
 using DotNetNuke.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
+using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator
 {
@@ -17,6 +18,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator
             services.AddScoped<IEasyDNNNewsCategoriesRepository, EasyDNNNewsCategoriesRepository>();
             services.AddScoped<IEasyDNNNewsCategoryListRepository, EasyDNNNewsCategoryListRepository>();
             services.AddScoped<IEncryptionHelper, EncryptionHelper>();
+            services.AddScoped<IEasyDNNNewsGenericRepository<EasyDNNNewsNewTags>, EasyDNNNewsGenericRepository<EasyDNNNewsNewTags>>();
+            services.AddScoped<IEasyDNNNewsGenericRepository<EasyDNNNewsTagsItems>, EasyDNNNewsGenericRepository<EasyDNNNewsTagsItems>>();
         }
     }
 }
