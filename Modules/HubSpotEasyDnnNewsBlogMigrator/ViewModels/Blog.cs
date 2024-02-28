@@ -36,7 +36,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels
         public string RssSummary { get; set; }
         public string Slug { get; set; }
         public string State { get; set; }
-        public List<object> TagIds { get; set; }
+        public List<long> TagIds { get; set; }
         public Dictionary<string, object> Translations { get; set; }
         public string Updated { get; set; }
         public string UpdatedById { get; set; }
