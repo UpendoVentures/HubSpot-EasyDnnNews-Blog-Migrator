@@ -1,3 +1,20 @@
+# Upendo's HubSpot to EasyDNN News Blog Content Migration Module  
+
+This module helps a website owner migrate from using the HubSpot blogging engine, to EasyDNN News (by EasyDnnSolutions.com).  
+
+## Prerequisites  
+
+- DNN Platform 09.11.00+  
+- EasyDNN News 11.09.00+ (must already be installed)  
+
+## Features  
+
+Allows you to use the HubSpot API to authenticate using OAuth, to import blog content from HubSpot to the EasyDNN News module.  
+
+Allows you to import blog files into the EasyDNN News folder format, as a separate feature. (Also works for WordPress images... Just saying!!)  
+
+<hr />
+
 Hello, fellow DNN'er!  
 
 This solution was built using the [Upendo DNN Generator](https://github.com/UpendoVentures/generator-upendodnn#readme).  Anything you need to know about using this tool can be found there.  
