@@ -43,7 +43,7 @@
 		<h3>Version 01.00.00</h3>
 		<h4>Enhancements</h4>
 		<ul>
-			<li>SI: Initial release, with miniman features, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>! 
+			<li>SI: Initial release, with minimal features, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>! 
 				<ul>
 					<li>Securely authenticates with the HubSpot API</li>
 					<li>Imports blog content and files from HubSpot, into a local instance of EasyDNN News.</li>
