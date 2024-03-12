@@ -37,7 +37,6 @@
 		<p>The following prefixes are defined as:</p>
 		<ul>
 			<li><strong>SI:</strong> Support Inquiry - This issue was reported by a <a href="https://upendoventures.com/Support" target="_blank">support customer</a> and, as such, was prioritized above all other tasks.</li>
-			<li><strong>CI:</strong> Community Inquiry - This issue was reported by a community member in the <a href="https://github.com/UpendoVentures/Upendo-Dnn-Prompt/issues" target="_blanK">GitHub issues (or elsewhere)</a>.</li>
 		</ul>
 		<hr />
 
