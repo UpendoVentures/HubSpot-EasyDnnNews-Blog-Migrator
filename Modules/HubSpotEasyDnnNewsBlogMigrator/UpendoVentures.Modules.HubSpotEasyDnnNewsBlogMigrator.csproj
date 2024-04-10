@@ -96,6 +96,7 @@
     <Compile Include="Models\EasyDNNNewsCategoryList.cs" />
     <Compile Include="Models\EasyDNNNewsNewTags.cs" />
     <Compile Include="Models\EasyDNNNewsTagsItems.cs" />
+    <Compile Include="Models\HubSpotEasyDNNNews.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repository\Contract\IEasyDNNNewsCategoryListRepository.cs" />
     <Compile Include="Repository\Contract\IEasyDNNNewsCategoriesRepository.cs" />
