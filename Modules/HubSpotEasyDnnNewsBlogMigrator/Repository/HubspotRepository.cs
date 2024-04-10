@@ -13,6 +13,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OU
 DEALINGS IN THE SOFTWARE.
 */
 
+using Dapper;
 using DotNetNuke.Entities.Controllers;
 using DotNetNuke.Entities.Modules;
 using DotNetNuke.Entities.Portals;
@@ -21,6 +22,8 @@ using DotNetNuke.Instrumentation;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Net.Http;
 using System.Threading.Tasks;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
@@ -28,6 +31,7 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Data;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
+using System.Linq;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -36,6 +40,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
     /// </summary>
     public class HubspotRepository : GenericRepository<EasyDNNNews>, IHubspotRepository
     {
+        private readonly IDbConnection _connection;
         private readonly ILog _logger;
         private readonly ModuleController _moduleController;
         private readonly int _portalId;
@@ -61,6 +66,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             IEasyDNNNewsCategoriesRepository easyDNNNewsCategoriesRepository, IEasyDNNNewsCategoryListRepository easyDNNNewsCategoryListRepository, IEncryptionHelper encryptionHelper,
             IEasyDNNNewsGenericRepository<EasyDNNNewsNewTags> tagsRepository, IEasyDNNNewsGenericRepository<EasyDNNNewsTagsItems> tagsItemsRepository) : base(context)
         {
+            _connection = context.CreateConnection();
             _logger = LoggerSource.Instance.GetLogger(GetType());
             _moduleController = new ModuleController();
             _portalId = PortalController.Instance.GetCurrentPortalSettings().PortalId;
@@ -204,6 +210,10 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                         // Call the base class method to perform the insert
                         foreach (var item in blogs)
                         {
+                            if (await ItsMigrated(item.Id))
+                            {
+                                continue;
+                            }
                             DateTime publishDate = DateTime.Parse(item.PublishDate);
 
                             string filename = "";
@@ -287,6 +297,13 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                             if (easyDNNNews.ArticleID != 0)
                             {
                                 rowsEffected++;
+                                var hubSpotEasyDNN = new HubSpotEasyDNNNews
+                                {
+                                    HubSpotId = item.Id,
+                                    EasyDNNNewsId = easyDNNNews.ArticleID,
+                                    UserID = _currentUser.UserID
+                                };
+                                await AddHubSpotEasyDNNNews(hubSpotEasyDNN);
                             }
 
                             if (easyDNNNews.ArticleID != 0)
@@ -442,6 +459,58 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 }
             }
 
+        }
+
+        /// <summary>
+        /// Adds the HubSpotEasyDNNNews entity to the database.
+        /// <param name="entity"/>The entity to add.</param>
+        public async Task<bool> AddHubSpotEasyDNNNews(HubSpotEasyDNNNews entity)
+        {
+            int rowsEffected = 0;
+            try
+            {
+                // Get the name of the table associated with the entity type.
+                string tableName = "HubSpotEasyDNNNews";
+
+                // Get the names of columns and properties, excluding the primary key.
+                string columns = "HubSpotId, EasyDNNNewsId, UserID";
+                string properties = "@HubSpotId, @EasyDNNNewsId, @UserID";
+
+                // Create an SQL query to insert the entity into the table.
+                string query = $"INSERT INTO {tableName} ({columns}) VALUES ({properties})";
+
+                // Execute the insert query asynchronously, specifying the entity as parameters.
+                rowsEffected = await _connection.ExecuteAsync(query, entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+
+            // Return true if at least one row is affected by the insert; otherwise, return false.
+            return rowsEffected > 0;
+        }
+
+        /// <summary>
+        /// Checks if the blog post is already migrated.
+        /// </summary>
+        /// <param name="hubSpotId"></param>
+        /// <returns></returns>
+        public async Task<bool> ItsMigrated(string hubSpotId)
+        {
+            try
+            {
+                string tableName = "HubSpotEasyDNNNews";
+                string query = $"SELECT * FROM {tableName} WHERE [HubSpotId] = N'@HubSpotId' ";
+                var results = await _connection.QueryAsync<HubSpotEasyDNNNews>(query, new { HubSpotId = hubSpotId });
+
+                return results.Any();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                return false;
+            }
         }
     }
 }
