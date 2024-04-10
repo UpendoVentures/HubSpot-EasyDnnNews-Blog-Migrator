@@ -13,7 +13,7 @@
                     <span v-if="!tokenExpired">
                         <div v-if="isLoading" class="spinner"></div>
                         <h6>{{ resx.ThereAreTotalOf }} {{ items.Total }} {{ resx.PostsOnHubSpot }}</h6>
-                        <div class="dnnFormMessage dnnFormSuccess col-6" v-if="postMigrated">
+                        <div class="dnnFormMessage dnnFormSuccess col-6" v-if="showResults">
                             {{ resx.ATotalOf }} {{ postMigrated }} {{ resx.WereMigratedSuccessfully }}
                         </div>
                         <ul class="dnnActions dnnClear">
@@ -48,6 +48,7 @@ const items = ref([]);
 const message = ref('');
 const tokenExpired = ref(false);
 const postMigrated = ref(0);
+const showResults = ref(false);
 let isLoading = ref(false);
 
 // Variables
@@ -101,13 +102,13 @@ async function geturlForInitiateOAuth() {
 }
 
 async function migratePosts() {
+    showResults.value = false;
     isLoading.value = true;
     var endpoint = `${getUrlBase()}Hubspot/MigratePosts`
     const result = await makeRequest(dnnConfig, endpoint, 'get', null, accessToken);
     isLoading.value = false;
-    if (result) {
-        postMigrated.value = result;
-    }
+    postMigrated.value = result;
+    showResults.value = true;
 }
 
 // Executed methods during the component's mounting phase
