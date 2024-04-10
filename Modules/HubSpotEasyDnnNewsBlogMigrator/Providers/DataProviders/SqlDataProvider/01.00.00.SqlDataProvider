@@ -43,6 +43,20 @@ INSERT INTO {databaseOwner}{objectQualifier}HubSpotEasyDnnNewsBlogMigrator_Items
 VALUES
 ('Sample Item', 'This is a sample item description.', 1, 1, GETDATE(), 1, GETDATE(), 1);
 
+
+GO
+
+-- Create the HubSpotEasyDNNNews table
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'{databaseOwner}[{objectQualifier}HubSpotEasyDNNNews]') AND type in (N'U'))
+CREATE TABLE {databaseOwner}{objectQualifier}HubSpotEasyDNNNews
+(
+    HubSpotId nvarchar(255) NOT NULL,
+    EasyDNNNewsId INT NOT NULL,
+    UserID INT NOT NULL,
+    CONSTRAINT PK_{objectQualifier}HubSpotEasyDNNNews PRIMARY KEY CLUSTERED (HubSpotId)
+)
+GO
+
 /************************************************************/
 /*****              SqlDataProvider                     *****/
 /************************************************************/
