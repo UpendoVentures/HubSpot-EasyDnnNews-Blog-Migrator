@@ -73,6 +73,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 // Create an SQL query to insert the entity into the table.
                 string query = $"INSERT INTO {tableName} ({columns}) VALUES ({properties})";
 
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.Debug(query);
+                }
+
                 // Execute the insert query asynchronously, specifying the entity as parameters.
                 rowsEffected = await _connection.ExecuteAsync(query, entity);
             }
@@ -84,7 +89,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             // Return true if at least one row is affected by the insert; otherwise, return false.
             return rowsEffected > 0;
         }
-
 
         /// <summary>
         /// Deletes an entity of type T from the database based on its primary key.
@@ -108,6 +112,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 // Create an SQL query to delete the entity based on its primary key.
                 string query = $"DELETE FROM {tableName} WHERE {keyColumn} = @{keyProperty}";
 
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.Debug(query);
+                }
+
                 // Execute the delete query asynchronously, specifying the entity as parameters.
                 rowsEffected = await _connection.ExecuteAsync(query, entity);
             }
@@ -119,7 +128,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             // Return true if at least one row is affected by the delete; otherwise, return false.
             return rowsEffected > 0;
         }
-
 
         /// <summary>
         /// Retrieves all entities of type T from the database.
@@ -138,6 +146,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 // Construct an SQL query to select all records from the table.
                 string query = $"SELECT * FROM {tableName}";
 
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.Debug(query);
+                }
+
                 // Execute the query asynchronously and retrieve the results into a collection.
                 result = await _connection.QueryAsync<T>(query);
             }
@@ -149,7 +162,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             // Return a collection containing all entities of type T found in the database.
             return result;
         }
-
 
         /// <summary>
         /// Retrieves an entity of type T from the database by its unique identifier.
@@ -170,7 +182,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 string keyColumn = GetKeyColumnName();
 
                 // Construct an SQL query to select the entity by its primary key.
-                string query = $"SELECT * FROM {tableName} WHERE {keyColumn} = @Id";
+                string query = $"SELECT * FROM {tableName} WHERE [{keyColumn}] = @Id";
+
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.Debug(query);
+                }
 
                 // Execute the query asynchronously with the provided Id parameter.
                 result = await _connection.QueryAsync<T>(query, new { Id });
@@ -193,7 +210,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 string tableName = GetSingleTableName();
 
                 // Construct an SQL query to select the entity by its primary key.
-                string query = $"SELECT * FROM {tableName} WHERE {ColumnName} = @Name";
+                string query = $"SELECT * FROM {tableName} WHERE [{ColumnName}] = @Name";
+
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.Debug(query);
+                }
 
                 // Execute the query asynchronously with the provided Id parameter.
                 result = await _connection.QueryAsync<T>(query, new { Name });
@@ -252,6 +274,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 
                 // Execute the update query asynchronously with the provided entity data.
                 rowsEffected = await _connection.ExecuteAsync(query.ToString(), entity);
+
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.Debug(query.ToString());
+                }
             }
             catch (Exception ex)
             {
@@ -261,7 +288,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             // Return true if at least one row is affected by the update; otherwise, return false.
             return rowsEffected > 0;
         }
-
 
         /// <summary>
         /// Gets the name of the database table associated with the entity type T.
@@ -339,8 +365,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             return null;
         }
 
-
-
         /// <summary>
         /// Gets a comma-separated string of column names for the entity type T.
         /// </summary>
@@ -364,7 +388,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             return columns;
         }
 
-
         /// <summary>
         /// Gets a comma-separated string of parameter names for the entity type T.
         /// </summary>
@@ -385,7 +408,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             return values;
         }
 
-
         /// <summary>
         /// Gets a collection of PropertyInfo objects representing the properties of the entity type T.
         /// </summary>
@@ -400,7 +422,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 
             return properties;
         }
-
 
         /// <summary>
         /// Gets the name of the property that is marked as the primary key for the entity type T.
