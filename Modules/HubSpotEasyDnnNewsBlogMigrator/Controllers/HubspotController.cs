@@ -20,7 +20,6 @@ using DotNetNuke.Security;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using System;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
 using DotNetNuke.Services.Localization;
 using System.Linq;
@@ -39,6 +38,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
     {
         private readonly string ResourceFile = Constant.ResxRoot;
         private readonly IHubspotRepository _hubspotRepository;
+        
+        private const string MissingConfigurationsClientIdRedirectUri = "MissingConfigurationsClientIdRedirectUri.Text";
+        private const string MissingConfigurationsClientIdRedirectUriClientSecret = "MissingConfigurationsClientIdRedirectUriClientSecret.Text";
+        private const string MissingAccessToken = "MissingAccessToken.Text";
+        private const string AccessToken = "AccessToken";
+        private const string ErrorResponse = "error";
 
         /// <summary>
         /// Constructor for HubspotController.
@@ -88,7 +93,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             var redirectUri = settings.ConfigureAwait(false).GetAwaiter().GetResult().RedirectUri;
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
             {
-                return BadRequest(Localization.GetString("MissingConfigurationsClientIdRedirectUri.Text", ResourceFile));
+                return BadRequest(Localization.GetString(MissingConfigurationsClientIdRedirectUri, ResourceFile));
             }
             else
             {
@@ -117,7 +122,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri) || string.IsNullOrEmpty(clientSecret))
             {
                 var response = Request.CreateResponse(HttpStatusCode.BadRequest);
-                response.Content = new StringContent(Localization.GetString("MissingConfigurationsClientIdRedirectUriClientSecret.Text", ResourceFile));
+                response.Content = new StringContent(Localization.GetString(MissingConfigurationsClientIdRedirectUriClientSecret, ResourceFile));
                 return (IHttpActionResult)response;
             }
             else
@@ -134,7 +139,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         [HttpGet]
         public async Task<BlogResponse> GetBlogPosts()
         {
-            if (Request.Headers.TryGetValues("AccessToken", out IEnumerable<string> headerValues))
+            if (Request.Headers.TryGetValues(AccessToken, out IEnumerable<string> headerValues))
             {
                 var accessToken = headerValues.FirstOrDefault();
                 return await _hubspotRepository.GetPosts(accessToken);
@@ -143,8 +148,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             {
                 var blogResponse = new BlogResponse
                 {
-                    Message = Localization.GetString("MissingAccessToken.Text", ResourceFile),
-                    Status = "error",
+                    Message = Localization.GetString(MissingAccessToken, ResourceFile),
+                    Status = ErrorResponse,
                     Results = new List<Blog>(),
                     Total = 0
                 };
@@ -159,14 +164,14 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         [HttpGet]
         public async Task<IHttpActionResult> MigratePosts()
         {
-            if (Request.Headers.TryGetValues("AccessToken", out IEnumerable<string> headerValues))
+            if (Request.Headers.TryGetValues(AccessToken, out IEnumerable<string> headerValues))
             {
                 var accessToken = headerValues.FirstOrDefault();
                 return Ok(await _hubspotRepository.MigratePosts(accessToken));
             }
             else
             {
-                return Ok(Localization.GetString("MissingAccessToken.Text", ResourceFile));
+                return Ok(Localization.GetString(MissingAccessToken, ResourceFile));
             }
         }
     }

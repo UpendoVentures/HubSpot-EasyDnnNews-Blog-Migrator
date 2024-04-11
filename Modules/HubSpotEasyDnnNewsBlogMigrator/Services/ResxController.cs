@@ -55,7 +55,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
                 var val = Localization.GetString(key.ToString(), resxRoot);
 
                 if (key.EndsWith(Constant.PointText, StringComparison.InvariantCultureIgnoreCase)) key = key.Substring(0, key.Length - 5);
-                key = key.Replace(".", "_");
+                key = key.Replace(Constant.Period, Constant.Underscore);
 
                 resx.Add(key, val);
             }
