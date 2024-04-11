@@ -486,7 +486,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                         };
                         try
                         {
-                            await _tagsItemsRepository.AddAsync(tagsItems);
+                            await _tagsItemsRepository.UpdateAsync(tagsItems);
                         }
                         catch (Exception ex)
                         {
