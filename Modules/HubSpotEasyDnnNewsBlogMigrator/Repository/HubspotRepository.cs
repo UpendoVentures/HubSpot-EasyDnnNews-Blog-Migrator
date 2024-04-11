@@ -203,7 +203,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             {
                 using (var client = new HttpClient())
                 {
-                    var request = new HttpRequestMessage(HttpMethod.Get, "https://api.hubapi.com/cms/v3/blogs/posts");
+                    var request = new HttpRequestMessage(HttpMethod.Get, Constant.HubSpotApi.HubSpotApiPostBaseUri);
                     request.Headers.Add(Constant.HubSpotApi.AuthorizationHeader, $"Bearer {accessToken}");
                     var response = await client.SendAsync(request);
                     var content = await response.Content.ReadAsStringAsync();
@@ -213,6 +213,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                         return rowsEffected;
                     }
                     var blogs = blogResponse.Results;
+
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.Debug($"BEGIN BLOG IMPORT: {blogResponse.Results.Count} blog posts from HubSpot.");
+                    }
+
                     try
                     {
                         // Call the base class method to perform the insert
@@ -236,7 +242,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                             filename = System.Net.WebUtility.UrlDecode(filename);
                                         }
                                     }
-                                    catch (Exception)
+                                    catch 
                                     {
                                         filename = string.Empty;
                                     }
@@ -348,6 +354,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             {
                 _logger.Error(HttpErrorResponse, ex);
             }
+
+            if (_logger.IsDebugEnabled)
+            {
+                _logger.Debug("END BLOG IMPORT.");
+            }
             return rowsEffected;
         }
 
@@ -445,6 +456,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                             PortalID = _portalId,
                             DateCreated = DateTime.Now
                         };
+
                         var addNewTag = await _tagsRepository.AddAsync(newTag);
                         if (addNewTag)
                         {
