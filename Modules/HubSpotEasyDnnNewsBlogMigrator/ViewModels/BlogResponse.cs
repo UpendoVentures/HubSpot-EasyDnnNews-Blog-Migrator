@@ -32,6 +32,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels
     }
     public class Context
     {
+        private const string DateFormat = "yyyy-MM-dd HH:mm";
+
         [JsonProperty("expire time")]
         public List<string> ExpireTime { get; set; }
         public List<string> FormattedExpireTimes
@@ -45,7 +47,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels
                     {
                         if (DateTime.TryParse(expireTime, out DateTime date))
                         {
-                            formattedExpireTimes.Add(date.ToString("yyyy-MM-dd HH:mm"));
+                            formattedExpireTimes.Add(date.ToString(DateFormat));
                         }
                     }
                 }

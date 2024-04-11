@@ -109,5 +109,52 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants
         /// The default category name.
         /// </summary>
         public const string DefaultCategoryName = "Business";
+
+        public const string Hyphen = "-";
+        public const string Period = ".";
+        public const string Space = " ";
+        public const string Underscore = "_";
+        public const string Tilde = "~";
+
+        public const string Portals = "Portals";
+        public const string EasyDNNNews = "EasyDNNNews";
+
+        internal static class LocalizationKeys
+        {
+            public const string OriginFolderPathCannotNullEmpty = "OriginFolderPathCannotNullEmpty.Text";
+            public const string SourcePathCannotNullEmpty = "SourcePathCannotNullEmpty.Text";
+            public const string DestinationPathCannotNullEmpty = "DestinationPathCannotNullEmpty.Text";
+        }
+
+        internal static class HubSpotApi
+        {
+            public const string HubSpotApiAuthBaseUri = "https://api.hubapi.com/oauth/v1/token";
+            public const string HubSpotApiPostBaseUri = "https://api.hubapi.com/cms/v3/blogs/posts";
+
+            public const string AuthorizationHeader = "Authorization";
+        }
+        internal static class FormFields
+        {
+            public const string GrantType = "grant_type";
+            public const string ClientId = "client_id";
+            public const string ClientSecret = "client_secret";
+            public const string RedirectUri = "redirect_uri";
+            public const string Code = "code";
+
+            public const string AuthorizationCode = "authorization_code";
+        }
+        internal static class BlogData
+        {
+            public const string ExpiredAuthentication = "EXPIRED_AUTHENTICATION";
+            public const string CategoryColor = "default";
+
+            public const string DetailType = "Text";
+            public const string DetailsTemplate = "DEFAULT";
+            public const string GalleryPosition = "bottom";
+            public const string GalleryDisplayType = "chameleon";
+            public const string ArticleImageFolder = "EasyDNNNews";
+            public const string DetailTarget = "_self";
+            public const string DetailMediaType = "Image";
+        }
     }
 }

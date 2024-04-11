@@ -23,7 +23,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Net.Http;
 using System.Threading.Tasks;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
@@ -53,6 +52,16 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly IEasyDNNNewsCategoryListRepository _easyDNNNewsCategoryListRepository;
         private readonly IEasyDNNNewsGenericRepository<EasyDNNNewsNewTags> _tagsRepository;
         private readonly IEasyDNNNewsGenericRepository<EasyDNNNewsTagsItems> _tagsItemsRepository;
+
+        private const string HttpErrorResponse = "Error making the HTTP request";
+        private const string RequestErrorResponse = "Error in the request";
+
+        private const string ColumnName = "Name";
+        // Get the name of the table associated with the entity type.
+        private const string TableName = "HubSpotEasyDNNNews";
+        // Get the names of columns and properties, excluding the primary key.
+        private const string Columns = "HubSpotId, EasyDNNNewsId, UserID";
+        private const string Properties = "@HubSpotId, @EasyDNNNewsId, @UserID";
 
         /// <summary>
         /// Constructor for the HubspotRepository.
@@ -130,15 +139,15 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 HostController.Instance.Update(Constant.Code, settings.Code.Trim());
                 using (var client = new HttpClient())
                 {
-                    var request = new HttpRequestMessage(HttpMethod.Post, "https://api.hubapi.com/oauth/v1/token")
+                    var request = new HttpRequestMessage(HttpMethod.Post, Constant.HubSpotApi.HubSpotApiAuthBaseUri)
                     {
                         Content = new FormUrlEncodedContent(new Dictionary<string, string>
                         {
-                            {"grant_type", "authorization_code"},
-                            {"client_id", settings.ClientId},
-                            {"client_secret", settings.ClientSecret},
-                            {"redirect_uri", settings.RedirectUri},
-                            {"code", settings.Code}
+                            {Constant.FormFields.GrantType, Constant.FormFields.AuthorizationCode},
+                            {Constant.FormFields.ClientId, settings.ClientId},
+                            {Constant.FormFields.ClientSecret, settings.ClientSecret},
+                            {Constant.FormFields.RedirectUri, settings.RedirectUri},
+                            {Constant.FormFields.Code, settings.Code}
                         })
                     };
 
@@ -150,11 +159,10 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
             catch (Exception ex)
             {
-                _logger.Error("Error making the HTTP request", ex);
+                _logger.Error(HttpErrorResponse, ex);
                 return tokenResponse;
             }
         }
-
 
         /// <summary>
         /// Retrieves the blog posts from Hubspot.
@@ -168,8 +176,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             {
                 using (var client = new HttpClient())
                 {
-                    var request = new HttpRequestMessage(HttpMethod.Get, "https://api.hubapi.com/cms/v3/blogs/posts");
-                    request.Headers.Add("Authorization", $"Bearer {accessToken}");
+                    var request = new HttpRequestMessage(HttpMethod.Get, Constant.HubSpotApi.HubSpotApiPostBaseUri);
+                    request.Headers.Add(Constant.HubSpotApi.AuthorizationHeader, $"Bearer {accessToken}");
                     var response = await client.SendAsync(request);
                     var content = await response.Content.ReadAsStringAsync();
                     blogResponse = JsonConvert.DeserializeObject<BlogResponse>(content);
@@ -178,7 +186,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
             catch (Exception ex)
             {
-                _logger.Error("Error making the HTTP request", ex);
+                _logger.Error(HttpErrorResponse, ex);
                 return blogResponse;
             }
         }
@@ -196,11 +204,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 using (var client = new HttpClient())
                 {
                     var request = new HttpRequestMessage(HttpMethod.Get, "https://api.hubapi.com/cms/v3/blogs/posts");
-                    request.Headers.Add("Authorization", $"Bearer {accessToken}");
+                    request.Headers.Add(Constant.HubSpotApi.AuthorizationHeader, $"Bearer {accessToken}");
                     var response = await client.SendAsync(request);
                     var content = await response.Content.ReadAsStringAsync();
                     var blogResponse = JsonConvert.DeserializeObject<BlogResponse>(content);
-                    if (blogResponse.Category == "EXPIRED_AUTHENTICATION")
+                    if (blogResponse.Category == Constant.BlogData.ExpiredAuthentication)
                     {
                         return rowsEffected;
                     }
@@ -217,7 +225,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 {
                                     DateTime publishDate = DateTime.Parse(item.PublishDate);
 
-                                    string filename = "";
+                                    string filename = string.Empty;
                                     try
                                     {
                                         string ArticleImage = item.FeaturedImage;
@@ -230,17 +238,17 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                     }
                                     catch (Exception)
                                     {
-                                        filename = "";
+                                        filename = string.Empty;
                                     }
 
                                     var easyDNNNews = new EasyDNNNews()
                                     {
                                         PortalID = _portalId,
                                         UserID = _currentUser.UserID,
-                                        Title = string.IsNullOrEmpty(item.HtmlTitle) ? "" : item.HtmlTitle,
-                                        SubTitle = "",
-                                        Summary = string.IsNullOrEmpty(item.PostSummary) ? "" : item.PostSummary,
-                                        Article = string.IsNullOrEmpty(item.PostBody) ? "" : item.PostBody,
+                                        Title = string.IsNullOrEmpty(item.HtmlTitle) ? string.Empty : item.HtmlTitle,
+                                        SubTitle = string.Empty,
+                                        Summary = string.IsNullOrEmpty(item.PostSummary) ? string.Empty : item.PostSummary,
+                                        Article = string.IsNullOrEmpty(item.PostBody) ? string.Empty : item.PostBody,
                                         ArticleImage = filename,
                                         DateAdded = DateTime.Parse(item.Created, null, System.Globalization.DateTimeStyles.RoundtripKind),
                                         LastModified = DateTime.Parse(item.Updated, null, System.Globalization.DateTimeStyles.RoundtripKind),
@@ -249,19 +257,19 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                         NumberOfViews = 0,
                                         RatingValue = 0,
                                         RatingCount = 0,
-                                        TitleLink = string.IsNullOrEmpty(item.HtmlTitle) ? "" : ReplaceAndRemove(item.HtmlTitle),
-                                        DetailType = "Text",
-                                        DetailsTemplate = "DEFAULT",
-                                        DetailsTheme = "DEFAULT",
-                                        GalleryPosition = "bottom",
-                                        GalleryDisplayType = "chameleon",
-                                        CommentsTheme = "DEFAULT",
-                                        ArticleImageFolder = "EasyDNNNews",
+                                        TitleLink = string.IsNullOrEmpty(item.HtmlTitle) ? string.Empty : ReplaceAndRemove(item.HtmlTitle),
+                                        DetailType = Constant.BlogData.DetailType,
+                                        DetailsTemplate = Constant.BlogData.DetailsTemplate,
+                                        DetailsTheme = Constant.BlogData.DetailsTemplate,
+                                        GalleryPosition = Constant.BlogData.GalleryPosition,
+                                        GalleryDisplayType = Constant.BlogData.GalleryDisplayType,
+                                        CommentsTheme = Constant.BlogData.DetailsTemplate,
+                                        ArticleImageFolder = Constant.BlogData.ArticleImageFolder,
                                         NumberOfComments = 0,
-                                        MetaDecription = string.IsNullOrEmpty(item.MetaDescription) ? "" : item.MetaDescription,
-                                        DisplayStyle = "DEFAULT",
-                                        DetailTarget = "_self",
-                                        CleanArticleData = string.IsNullOrEmpty(item.PostBody) ? "" : item.PostBody,
+                                        MetaDecription = string.IsNullOrEmpty(item.MetaDescription) ? string.Empty : item.MetaDescription,
+                                        DisplayStyle = Constant.BlogData.DetailsTemplate,
+                                        DetailTarget = Constant.BlogData.DetailTarget,
+                                        CleanArticleData = string.IsNullOrEmpty(item.PostBody) ? string.Empty : item.PostBody,
                                         ArticleFromRSS = false,
                                         HasPermissions = false,
                                         EventArticle = false,
@@ -279,11 +287,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                         Published = true,
                                         WorkflowId = 1,
                                         RevisionHistoryEntryID = 0,
-                                        DetailMediaType = "Image",
-                                        DetailsArticleImage = "",
-                                        OpenGraphMetaTags = "",
-                                        TwitterCardMetaTags = "",
-                                        StructuredDataJSON = "",
+                                        DetailMediaType = Constant.BlogData.DetailMediaType,
+                                        DetailsArticleImage = string.Empty,
+                                        OpenGraphMetaTags = string.Empty,
+                                        TwitterCardMetaTags = string.Empty,
+                                        StructuredDataJSON = string.Empty,
                                         ArticleGalleryID = null,
                                         CFGroupeID = null,
                                         DetailsDocumentsTemplate = null,
@@ -338,7 +346,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
             catch (Exception ex)
             {
-                _logger.Error("Error making the HTTP request", ex);
+                _logger.Error(HttpErrorResponse, ex);
             }
             return rowsEffected;
         }
@@ -346,8 +354,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private string ReplaceAndRemove(string input)
         {
             string result = input.Replace(' ', '-');
-            result = System.Text.RegularExpressions.Regex.Replace(result, @"[^a-zA-Z0-9\-~]", "");
-            if (result.EndsWith("-"))
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"[^a-zA-Z0-9\-~]", string.Empty);
+            if (result.EndsWith(Constant.Hyphen))
             {
                 result = result.Remove(result.Length - 1);
             }
@@ -377,7 +385,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                     CategoryURL = null,
                     CategoryImage = null,
                     CategoryText = null,
-                    Color = "default",
+                    Color = Constant.BlogData.CategoryColor,
                     SearchableText = defaultCategoryName,
                     QueryLink = null,
                     TitleTag = null,
@@ -410,7 +418,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
             catch (Exception ex)
             {
-                _logger.Error("Error in the request", ex);
+                _logger.Error(RequestErrorResponse, ex);
             }
         }
 
@@ -427,8 +435,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 foreach (long tagId in tagIds)
                 {
                     var name = $"hubspotTagId{tagId}";
-                    var columnName = "Name";
-                    var tag = await _tagsRepository.GetByNameAsync(name, columnName);
+                    var tag = await _tagsRepository.GetByNameAsync(name, ColumnName);
 
                     if (tag == null)
                     {
@@ -453,7 +460,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                             }
                             catch (Exception ex)
                             {
-                                _logger.Error("Error in the request", ex);
+                                _logger.Error(RequestErrorResponse, ex);
                             }
                         }
                     }
@@ -471,7 +478,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                         }
                         catch (Exception ex)
                         {
-                            _logger.Error("Error in the request", ex);
+                            _logger.Error(RequestErrorResponse, ex);
                         }
                     }
                 }
@@ -487,15 +494,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             int rowsEffected = 0;
             try
             {
-                // Get the name of the table associated with the entity type.
-                string tableName = "HubSpotEasyDNNNews";
-
-                // Get the names of columns and properties, excluding the primary key.
-                string columns = "HubSpotId, EasyDNNNewsId, UserID";
-                string properties = "@HubSpotId, @EasyDNNNewsId, @UserID";
-
                 // Create an SQL query to insert the entity into the table.
-                string query = $"INSERT INTO {tableName} ({columns}) VALUES ({properties})";
+                string query = $"INSERT INTO {TableName} ({Columns}) VALUES ({Properties})";
 
                 // Execute the insert query asynchronously, specifying the entity as parameters.
                 rowsEffected = await _connection.ExecuteAsync(query, entity);
@@ -518,8 +518,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         {
             try
             {
-                string tableName = "HubSpotEasyDNNNews";
-                string query = $"SELECT * FROM {tableName} WHERE [HubSpotId] = @hubSpotId";
+                string query = $"SELECT * FROM {TableName} WHERE [HubSpotId] = @hubSpotId";
                 var results = await _connection.QueryAsync<HubSpotEasyDNNNews>(query, new { hubSpotId });
 
                 return results.Any();

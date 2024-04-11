@@ -206,7 +206,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         {
             if (string.IsNullOrEmpty(originFolderPath))
             {
-                throw new ArgumentException(Localization.GetString("OriginFolderPathCannotNullEmpty.Text", ResourceFile), nameof(originFolderPath));
+                throw new ArgumentException(Localization.GetString(Constant.LocalizationKeys.OriginFolderPathCannotNullEmpty, ResourceFile), nameof(originFolderPath));
             }
 
             var easyDNNNews = await GetAllEasyDNNNews() ?? new List<EasyDNNNews>();
@@ -218,7 +218,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 {
                     try
                     {
-                        var destinationFolderPath = Path.Combine(Path.Combine(HostingEnvironment.MapPath("~"), "Portals", _portalId.ToString(), "EasyDNNNews", item.ArticleID.ToString()));
+                        var destinationFolderPath = Path.Combine(Path.Combine(HostingEnvironment.MapPath(Constant.Tilde), Constant.Portals, _portalId.ToString(), Constant.EasyDNNNews, item.ArticleID.ToString()));
                         var copyImage = await CopyImageToFolderAsync(originFolderPath, item.ArticleImage, destinationFolderPath);
                        
                         if (copyImage)
@@ -250,12 +250,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 
             if (string.IsNullOrEmpty(sourcePath))
             {
-                throw new ArgumentException(Localization.GetString("SourcePathCannotNullEmpty.Text", ResourceFile), nameof(sourcePath));
+                throw new ArgumentException(Localization.GetString(Constant.LocalizationKeys.SourcePathCannotNullEmpty, ResourceFile), nameof(sourcePath));
             }
 
             if (string.IsNullOrEmpty(destinationPath))
             {
-                throw new ArgumentException(Localization.GetString("DestinationPathCannotNullEmpty.Text", ResourceFile), nameof(destinationPath));
+                throw new ArgumentException(Localization.GetString(Constant.LocalizationKeys.DestinationPathCannotNullEmpty, ResourceFile), nameof(destinationPath));
             }
 
             if (!Directory.Exists(destinationPath))

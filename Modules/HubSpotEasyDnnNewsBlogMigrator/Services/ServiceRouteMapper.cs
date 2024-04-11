@@ -23,6 +23,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
     /// </summary>
     public class ServiceRouteMapper : IServiceRouteMapper
     {
+        private const string ModuleFolderName = "UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator";
+        private const string RouteName = "default";
+        private const string Url = "{controller}/{action}";
+        private const string Namespaces = "UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services";
+
          /// <summary>
         /// RegisterRoutes is used to register the module's routes
         /// </summary>
@@ -30,10 +35,10 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         public void RegisterRoutes(IMapRoute mapRouteManager)
         {
             mapRouteManager.MapHttpRoute(
-                moduleFolderName: "UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator",
-                routeName: "default",
-                url: "{controller}/{action}",
-                namespaces: new[] { "UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services" });
+                moduleFolderName: ModuleFolderName,
+                routeName: RouteName,
+                url: Url,
+                namespaces: new[] { Namespaces });
         }
     }
 }
