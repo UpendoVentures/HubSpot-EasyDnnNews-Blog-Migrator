@@ -31,6 +31,7 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
 using System.Linq;
+using DotNetNuke.Web.UI.WebControls;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -59,6 +60,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private const string ColumnName = "Name";
         // Get the name of the table associated with the entity type.
         private const string TableName = "HubSpotEasyDNNNews";
+        private const string TableTagsItemsName = "EasyDNNNewsTagsItems";
         // Get the names of columns and properties, excluding the primary key.
         private const string Columns = "HubSpotId, EasyDNNNewsId, UserID";
         private const string Properties = "@HubSpotId, @EasyDNNNewsId, @UserID";
@@ -199,156 +201,169 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         public async Task<int> MigratePosts(string accessToken)
         {
             var rowsEffected = 0;
+            var offset = 0;
+            var limit = 20;
+
             try
             {
                 using (var client = new HttpClient())
                 {
-                    var request = new HttpRequestMessage(HttpMethod.Get, Constant.HubSpotApi.HubSpotApiPostBaseUri);
-                    request.Headers.Add(Constant.HubSpotApi.AuthorizationHeader, $"Bearer {accessToken}");
-                    var response = await client.SendAsync(request);
-                    var content = await response.Content.ReadAsStringAsync();
-                    var blogResponse = JsonConvert.DeserializeObject<BlogResponse>(content);
-                    if (blogResponse.Category == Constant.BlogData.ExpiredAuthentication)
+                    while (true)
                     {
-                        return rowsEffected;
-                    }
-                    var blogs = blogResponse.Results;
-
-                    if (_logger.IsDebugEnabled)
-                    {
-                        _logger.Debug($"BEGIN BLOG IMPORT: {blogResponse.Results.Count} blog posts from HubSpot.");
-                    }
-
-                    try
-                    {
-                        // Call the base class method to perform the insert
-                        foreach (var item in blogs)
+                        var request = new HttpRequestMessage(HttpMethod.Get, $"{Constant.HubSpotApi.HubSpotApiPostBaseUri}?limit={limit}&offset={offset}");
+                        request.Headers.Add(Constant.HubSpotApi.AuthorizationHeader, $"Bearer {accessToken}");
+                        var response = await client.SendAsync(request);
+                        var content = await response.Content.ReadAsStringAsync();
+                        var blogResponse = JsonConvert.DeserializeObject<BlogResponse>(content);
+                        if (blogResponse.Category == Constant.BlogData.ExpiredAuthentication)
                         {
-                            try
+                            return rowsEffected;
+                        }
+                        var blogs = blogResponse.Results;
+
+                        if (_logger.IsDebugEnabled)
+                        {
+                            _logger.Debug($"BEGIN BLOG IMPORT: {blogResponse.Results.Count} blog posts from HubSpot.");
+                        }
+
+                        try
+                        {
+                            // Call the base class method to perform the insert
+                            foreach (var item in blogs)
                             {
-                                var isMigrated = await ItsMigrated(item.Id);
-                                if (!isMigrated)
+                                try
                                 {
-                                    DateTime publishDate = DateTime.Parse(item.PublishDate);
-
-                                    string filename = string.Empty;
-                                    try
+                                    var isMigrated = await ItsMigrated(item.Id);
+                                    if (!isMigrated)
                                     {
-                                        string ArticleImage = item.FeaturedImage;
-                                        if (!string.IsNullOrEmpty(ArticleImage))
+                                        DateTime publishDate = DateTime.Parse(item.PublishDate);
+
+                                        string filename = string.Empty;
+                                        try
                                         {
-                                            Uri uri = new Uri(ArticleImage);
-                                            filename = System.IO.Path.GetFileName(uri.LocalPath);
-                                            filename = System.Net.WebUtility.UrlDecode(filename);
+                                            string ArticleImage = item.FeaturedImage;
+                                            if (!string.IsNullOrEmpty(ArticleImage))
+                                            {
+                                                Uri uri = new Uri(ArticleImage);
+                                                filename = System.IO.Path.GetFileName(uri.LocalPath);
+                                                filename = System.Net.WebUtility.UrlDecode(filename);
+                                            }
                                         }
-                                    }
-                                    catch 
-                                    {
-                                        filename = string.Empty;
-                                    }
-
-                                    var easyDNNNews = new EasyDNNNews()
-                                    {
-                                        PortalID = _portalId,
-                                        UserID = _currentUser.UserID,
-                                        Title = string.IsNullOrEmpty(item.HtmlTitle) ? string.Empty : item.HtmlTitle,
-                                        SubTitle = string.Empty,
-                                        Summary = string.IsNullOrEmpty(item.PostSummary) ? string.Empty : item.PostSummary,
-                                        Article = string.IsNullOrEmpty(item.PostBody) ? string.Empty : item.PostBody,
-                                        ArticleImage = filename,
-                                        DateAdded = DateTime.Parse(item.Created, null, System.Globalization.DateTimeStyles.RoundtripKind),
-                                        LastModified = DateTime.Parse(item.Updated, null, System.Globalization.DateTimeStyles.RoundtripKind),
-                                        PublishDate = DateTime.Parse(item.PublishDate, null, System.Globalization.DateTimeStyles.RoundtripKind),
-                                        ExpireDate = DateTime.Parse(item.PublishDate, null, System.Globalization.DateTimeStyles.RoundtripKind).AddYears(1),
-                                        NumberOfViews = 0,
-                                        RatingValue = 0,
-                                        RatingCount = 0,
-                                        TitleLink = string.IsNullOrEmpty(item.HtmlTitle) ? string.Empty : ReplaceAndRemove(item.HtmlTitle),
-                                        DetailType = Constant.BlogData.DetailType,
-                                        DetailsTemplate = Constant.BlogData.DetailsTemplate,
-                                        DetailsTheme = Constant.BlogData.DetailsTemplate,
-                                        GalleryPosition = Constant.BlogData.GalleryPosition,
-                                        GalleryDisplayType = Constant.BlogData.GalleryDisplayType,
-                                        CommentsTheme = Constant.BlogData.DetailsTemplate,
-                                        ArticleImageFolder = Constant.BlogData.ArticleImageFolder,
-                                        NumberOfComments = 0,
-                                        MetaDecription = string.IsNullOrEmpty(item.MetaDescription) ? string.Empty : item.MetaDescription,
-                                        DisplayStyle = Constant.BlogData.DetailsTemplate,
-                                        DetailTarget = Constant.BlogData.DetailTarget,
-                                        CleanArticleData = string.IsNullOrEmpty(item.PostBody) ? string.Empty : item.PostBody,
-                                        ArticleFromRSS = false,
-                                        HasPermissions = false,
-                                        EventArticle = false,
-                                        ShowGallery = true,
-                                        HideDefaultLocale = false,
-                                        Featured = false,
-                                        Approved = true,
-                                        AllowComments = true,
-                                        Active = true,
-                                        ShowMainImage = true,
-                                        ShowMainImageFront = true,
-                                        ArticleImageSet = true,
-                                        GoodVotesCount = 0,
-                                        BadVotesCount = 0,
-                                        Published = true,
-                                        WorkflowId = 1,
-                                        RevisionHistoryEntryID = 0,
-                                        DetailMediaType = Constant.BlogData.DetailMediaType,
-                                        DetailsArticleImage = string.Empty,
-                                        OpenGraphMetaTags = string.Empty,
-                                        TwitterCardMetaTags = string.Empty,
-                                        StructuredDataJSON = string.Empty,
-                                        ArticleGalleryID = null,
-                                        CFGroupeID = null,
-                                        DetailsDocumentsTemplate = null,
-                                        DetailsLinksTemplate = null,
-                                        DetailsRelatedArticlesTemplate = null,
-                                        ContactEmail = null,
-                                        TitleTag = null,
-                                        SimpleForumTopicId = null,
-                                        AddRobotsFollowTag = null
-                                    };
-                                    easyDNNNews.ArticleID = await _easyDNNNewsRepository.AddEasyDNNNews(easyDNNNews);
-                                    if (easyDNNNews.ArticleID != 0)
-                                    {
-                                        rowsEffected++;
-                                        var hubSpotEasyDNN = new HubSpotEasyDNNNews
+                                        catch
                                         {
-                                            HubSpotId = item.Id,
-                                            EasyDNNNewsId = easyDNNNews.ArticleID,
-                                            UserID = _currentUser.UserID
+                                            filename = string.Empty;
+                                        }
+
+                                        var easyDNNNews = new EasyDNNNews()
+                                        {
+                                            PortalID = _portalId,
+                                            UserID = _currentUser.UserID,
+                                            Title = string.IsNullOrEmpty(item.HtmlTitle) ? string.Empty : item.HtmlTitle,
+                                            SubTitle = string.Empty,
+                                            Summary = string.IsNullOrEmpty(item.PostSummary) ? string.Empty : item.PostSummary,
+                                            Article = string.IsNullOrEmpty(item.PostBody) ? string.Empty : item.PostBody,
+                                            ArticleImage = filename,
+                                            DateAdded = DateTime.Parse(item.Created, null, System.Globalization.DateTimeStyles.RoundtripKind),
+                                            LastModified = DateTime.Parse(item.Updated, null, System.Globalization.DateTimeStyles.RoundtripKind),
+                                            PublishDate = DateTime.Parse(item.PublishDate, null, System.Globalization.DateTimeStyles.RoundtripKind),
+                                            ExpireDate = DateTime.Parse(item.PublishDate, null, System.Globalization.DateTimeStyles.RoundtripKind).AddYears(1),
+                                            NumberOfViews = 0,
+                                            RatingValue = 0,
+                                            RatingCount = 0,
+                                            TitleLink = string.IsNullOrEmpty(item.HtmlTitle) ? string.Empty : ReplaceAndRemove(item.HtmlTitle),
+                                            DetailType = Constant.BlogData.DetailType,
+                                            DetailsTemplate = Constant.BlogData.DetailsTemplate,
+                                            DetailsTheme = Constant.BlogData.DetailsTemplate,
+                                            GalleryPosition = Constant.BlogData.GalleryPosition,
+                                            GalleryDisplayType = Constant.BlogData.GalleryDisplayType,
+                                            CommentsTheme = Constant.BlogData.DetailsTemplate,
+                                            ArticleImageFolder = Constant.BlogData.ArticleImageFolder,
+                                            NumberOfComments = 0,
+                                            MetaDecription = string.IsNullOrEmpty(item.MetaDescription) ? string.Empty : item.MetaDescription,
+                                            DisplayStyle = Constant.BlogData.DetailsTemplate,
+                                            DetailTarget = Constant.BlogData.DetailTarget,
+                                            CleanArticleData = string.IsNullOrEmpty(item.PostBody) ? string.Empty : item.PostBody,
+                                            ArticleFromRSS = false,
+                                            HasPermissions = false,
+                                            EventArticle = false,
+                                            ShowGallery = true,
+                                            HideDefaultLocale = false,
+                                            Featured = false,
+                                            Approved = true,
+                                            AllowComments = true,
+                                            Active = true,
+                                            ShowMainImage = true,
+                                            ShowMainImageFront = true,
+                                            ArticleImageSet = true,
+                                            GoodVotesCount = 0,
+                                            BadVotesCount = 0,
+                                            Published = true,
+                                            WorkflowId = 1,
+                                            RevisionHistoryEntryID = 0,
+                                            DetailMediaType = Constant.BlogData.DetailMediaType,
+                                            DetailsArticleImage = string.Empty,
+                                            OpenGraphMetaTags = string.Empty,
+                                            TwitterCardMetaTags = string.Empty,
+                                            StructuredDataJSON = string.Empty,
+                                            ArticleGalleryID = null,
+                                            CFGroupeID = null,
+                                            DetailsDocumentsTemplate = null,
+                                            DetailsLinksTemplate = null,
+                                            DetailsRelatedArticlesTemplate = null,
+                                            ContactEmail = null,
+                                            TitleTag = null,
+                                            SimpleForumTopicId = null,
+                                            AddRobotsFollowTag = null
                                         };
-                                        await AddHubSpotEasyDNNNews(hubSpotEasyDNN);
-                                    }
-
-                                    if (easyDNNNews.ArticleID != 0)
-                                    {
-                                        var defaultCategoryList = await AddCategoryListIfNotExit(Constant.DefaultCategoryName, 0, 0);
-                                        await Add_EasyDNNNewsCategories(easyDNNNews.ArticleID, defaultCategoryList.CategoryID);
-
-                                        var defaultCategoryName = $"{Constant.DefaultCategoryName}{item.CategoryId}";
-                                        var easyDNNNewsCategoryList = await AddCategoryListIfNotExit(defaultCategoryName, defaultCategoryList.CategoryID, 1);
-                                        await Add_EasyDNNNewsCategories(easyDNNNews.ArticleID, easyDNNNewsCategoryList.CategoryID);
-
-                                        if (item.TagIds.Count > 0)
+                                        easyDNNNews.ArticleID = await _easyDNNNewsRepository.AddEasyDNNNews(easyDNNNews);
+                                        if (easyDNNNews.ArticleID != 0)
                                         {
-                                            await HandleTags(easyDNNNews.ArticleID, item.TagIds);
+                                            rowsEffected++;
+                                            var hubSpotEasyDNN = new HubSpotEasyDNNNews
+                                            {
+                                                HubSpotId = item.Id,
+                                                EasyDNNNewsId = easyDNNNews.ArticleID,
+                                                UserID = _currentUser.UserID
+                                            };
+                                            await AddHubSpotEasyDNNNews(hubSpotEasyDNN);
+                                        }
+
+                                        if (easyDNNNews.ArticleID != 0)
+                                        {
+                                            var defaultCategoryList = await AddCategoryListIfNotExit(Constant.DefaultCategoryName, 0, 0);
+                                            await Add_EasyDNNNewsCategories(easyDNNNews.ArticleID, defaultCategoryList.CategoryID);
+
+                                            var defaultCategoryName = $"{Constant.DefaultCategoryName}{item.CategoryId}";
+                                            var easyDNNNewsCategoryList = await AddCategoryListIfNotExit(defaultCategoryName, defaultCategoryList.CategoryID, 1);
+                                            await Add_EasyDNNNewsCategories(easyDNNNews.ArticleID, easyDNNNewsCategoryList.CategoryID);
+
+                                            if (item.TagIds.Count > 0)
+                                            {
+                                                await HandleTags(easyDNNNews.ArticleID, item.TagIds);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.Error(ex);
+                                catch (Exception ex)
+                                {
+                                    _logger.Error(ex);
+                                }
                             }
                         }
-                        return rowsEffected;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex);
+                        catch (Exception ex)
+                        {
+                            _logger.Error(ex);
+                        }
+
+                        if (offset >= blogResponse.Total)
+                        {
+                            break;
+                        }
+
+                        offset += limit;
                     }
                 }
+                return rowsEffected;
             }
             catch (Exception ex)
             {
@@ -445,57 +460,55 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             {
                 foreach (long tagId in tagIds)
                 {
-                    var name = $"hubspotTagId{tagId}";
-                    var tag = await _tagsRepository.GetByNameAsync(name, ColumnName);
-
-                    if (tag == null)
+                    try
                     {
-                        var newTag = new EasyDNNNewsNewTags
-                        {
-                            Name = name,
-                            PortalID = _portalId,
-                            DateCreated = DateTime.Now
-                        };
+                        var name = $"hubspotTagId{tagId}";
+                        var tag = await _tagsRepository.GetByNameAsync(name, ColumnName);
 
-                        var addNewTag = await _tagsRepository.AddAsync(newTag);
-                        if (addNewTag)
+                        if (tag == null)
                         {
-                            var tagsItems = new EasyDNNNewsTagsItems
+                            var newTag = new EasyDNNNewsNewTags
                             {
-                                ArticleID = articleID,
-                                TagID = newTag.TagID,
-                                DateAdded = DateTime.Now,
+                                Name = name,
+                                PortalID = _portalId,
+                                DateCreated = DateTime.Now
                             };
-                            try
+
+                            var addNewTag = await _tagsRepository.AddAsync(newTag);
+                            if (addNewTag)
                             {
-                                await _tagsItemsRepository.AddAsync(tagsItems);
+                                if (!await ExistTagsItems(articleID, newTag.TagID))
+                                {
+                                    var tagsItems = new EasyDNNNewsTagsItems
+                                    {
+                                        ArticleID = articleID,
+                                        TagID = newTag.TagID,
+                                        DateAdded = DateTime.Now,
+                                    };
+                                    await _tagsItemsRepository.AddAsync(tagsItems);
+                                }
                             }
-                            catch (Exception ex)
+                        }
+                        else
+                        {
+                            if (!await ExistTagsItems(articleID, tag.TagID))
                             {
-                                _logger.Error(RequestErrorResponse, ex);
+                                var tagsItems = new EasyDNNNewsTagsItems
+                                {
+                                    ArticleID = articleID,
+                                    TagID = tag.TagID,
+                                    DateAdded = DateTime.Now,
+                                };
+                                await _tagsItemsRepository.AddAsync(tagsItems);
                             }
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        var tagsItems = new EasyDNNNewsTagsItems
-                        {
-                            ArticleID = articleID,
-                            TagID = tag.TagID,
-                            DateAdded = DateTime.Now,
-                        };
-                        try
-                        {
-                            await _tagsItemsRepository.AddAsync(tagsItems);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.Error(RequestErrorResponse, ex);
-                        }
+                        _logger.Error(RequestErrorResponse, ex);
                     }
                 }
             }
-
         }
 
         /// <summary>
@@ -532,6 +545,28 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             {
                 string query = $"SELECT * FROM {TableName} WHERE [HubSpotId] = @hubSpotId";
                 var results = await _connection.QueryAsync<HubSpotEasyDNNNews>(query, new { hubSpotId });
+
+                return results.Any();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks if the tags items already exist.
+        /// </summary>
+        /// <param name="articleID"></param>
+        /// <param name="tagID"></param>
+        /// <returns></returns>
+        public async Task<bool> ExistTagsItems(int articleID, int tagID)
+        {
+            try
+            {
+                string query = $"SELECT * FROM {TableTagsItemsName} WHERE [ArticleID] = @articleID AND [TagID]= @tagID";
+                var results = await _connection.QueryAsync<HubSpotEasyDNNNews>(query, new { articleID, tagID });
 
                 return results.Any();
             }
