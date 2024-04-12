@@ -242,7 +242,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                             filename = System.Net.WebUtility.UrlDecode(filename);
                                         }
                                     }
-                                    catch 
+                                    catch
                                     {
                                         filename = string.Empty;
                                     }
@@ -445,57 +445,49 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             {
                 foreach (long tagId in tagIds)
                 {
-                    var name = $"hubspotTagId{tagId}";
-                    var tag = await _tagsRepository.GetByNameAsync(name, ColumnName);
-
-                    if (tag == null)
+                    try
                     {
-                        var newTag = new EasyDNNNewsNewTags
-                        {
-                            Name = name,
-                            PortalID = _portalId,
-                            DateCreated = DateTime.Now
-                        };
+                        var name = $"hubspotTagId{tagId}";
+                        var tag = await _tagsRepository.GetByNameAsync(name, ColumnName);
 
-                        var addNewTag = await _tagsRepository.AddAsync(newTag);
-                        if (addNewTag)
+                        if (tag == null)
+                        {
+                            var newTag = new EasyDNNNewsNewTags
+                            {
+                                Name = name,
+                                PortalID = _portalId,
+                                DateCreated = DateTime.Now
+                            };
+
+                            var addNewTag = await _tagsRepository.AddAsync(newTag);
+                            if (addNewTag)
+                            {
+                                var tagsItems = new EasyDNNNewsTagsItems
+                                {
+                                    ArticleID = articleID,
+                                    TagID = newTag.TagID,
+                                    DateAdded = DateTime.Now,
+                                };
+                                await _tagsItemsRepository.AddAsync(tagsItems);
+                            }
+                        }
+                        else
                         {
                             var tagsItems = new EasyDNNNewsTagsItems
                             {
                                 ArticleID = articleID,
-                                TagID = newTag.TagID,
+                                TagID = tag.TagID,
                                 DateAdded = DateTime.Now,
                             };
-                            try
-                            {
-                                await _tagsItemsRepository.AddAsync(tagsItems);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.Error(RequestErrorResponse, ex);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var tagsItems = new EasyDNNNewsTagsItems
-                        {
-                            ArticleID = articleID,
-                            TagID = tag.TagID,
-                            DateAdded = DateTime.Now,
-                        };
-                        try
-                        {
                             await _tagsItemsRepository.AddAsync(tagsItems);
                         }
-                        catch (Exception ex)
-                        {
-                            _logger.Error(RequestErrorResponse, ex);
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(RequestErrorResponse, ex);
                     }
                 }
             }
-
         }
 
         /// <summary>
