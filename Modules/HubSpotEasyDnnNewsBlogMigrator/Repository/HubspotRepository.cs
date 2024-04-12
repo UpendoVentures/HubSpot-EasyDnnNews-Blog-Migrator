@@ -228,7 +228,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 
                         try
                         {
-                            var totalBlogs = blogs.Count;
                             // Call the base class method to perform the insert
                             foreach (var item in blogs)
                             {
@@ -350,7 +349,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                     _logger.Error(ex);
                                 }
                             }
-                            return rowsEffected;
                         }
                         catch (Exception ex)
                         {
@@ -365,6 +363,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                         offset += limit;
                     }
                 }
+                return rowsEffected;
             }
             catch (Exception ex)
             {
