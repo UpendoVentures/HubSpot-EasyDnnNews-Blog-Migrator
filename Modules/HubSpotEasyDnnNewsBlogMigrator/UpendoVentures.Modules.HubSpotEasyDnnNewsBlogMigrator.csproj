@@ -117,6 +117,7 @@
     <Compile Include="Startup.cs" />
     <Compile Include="ViewModels\Blog.cs" />
     <Compile Include="ViewModels\BlogResponse.cs" />
+    <Compile Include="ViewModels\HubspotAccessTokenSetting.cs" />
     <Compile Include="ViewModels\HubspotSetting.cs" />
     <Compile Include="ViewModels\TokenResponse.cs" />
   </ItemGroup>
