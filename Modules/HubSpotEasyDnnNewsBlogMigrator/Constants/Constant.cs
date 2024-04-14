@@ -91,6 +91,11 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants
         public const string Scope = "Scope";
 
         /// <summary>
+        /// The AccessToken key used for AccessToken authentication.
+        /// </summary>
+        public const string AccessToken = "AccessToken";
+
+        /// <summary>
         /// The friendly name of the module.
         /// </summary>
         public const string FriendlyName = "HubSpotEasyDnnNewsBlogMigrator";
