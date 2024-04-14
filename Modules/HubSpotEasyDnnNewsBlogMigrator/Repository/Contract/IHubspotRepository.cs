@@ -26,6 +26,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contr
     {
         Task<HubspotSetting> GetSettings();
         HubspotSetting UpdateSettings(HubspotSetting settings);
+        Task<HubspotAccessTokenSetting> GetAccessTokenSettings();
+        HubspotAccessTokenSetting UpdateAccessTokenSettings(HubspotAccessTokenSetting settings);
         Task<TokenResponse> OAuthCallback(HubspotSetting settings);
         Task<BlogResponse> GetPosts(string accessToken);
         Task<int> MigratePosts(string accessToken);
