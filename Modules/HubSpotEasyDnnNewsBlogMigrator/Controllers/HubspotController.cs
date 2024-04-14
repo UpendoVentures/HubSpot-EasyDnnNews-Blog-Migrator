@@ -78,6 +78,29 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         }
 
         /// <summary>
+        /// Retrieves the current AccessToken settings.
+        /// </summary>
+        /// <returns>The current AccessToken settings.</returns>
+        [HttpGet]
+        public async Task<IHttpActionResult> GetAccessTokenSettings()
+        {
+            var settings = await _hubspotRepository.GetAccessTokenSettings();
+            return Ok(settings);
+        }
+
+        /// <summary>
+        /// Updates the AccessToken settings.
+        /// </summary>
+        /// <param name="settings">The new  AccessToken settings to apply.</param>
+        /// <returns>The result of the update operation.</returns>
+        [HttpPost]
+        public IHttpActionResult UpdateAccessTokenSettings(HubspotAccessTokenSetting settings)
+        {
+            var result = _hubspotRepository.UpdateAccessTokenSettings(settings);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Initiates the OAuth process by returning the URL for the HubSpot OAuth endpoint.
         /// The client ID and redirect URI are retrieved from the settings.
         /// </summary>
