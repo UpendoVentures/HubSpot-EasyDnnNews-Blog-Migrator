@@ -189,4 +189,13 @@
   <data name="NoImagesMigrated.Text" xml:space="preserve">
     <value>No images were migrated, the images already exist in the destination file or do not exist in the source folder.</value>
   </data>
+  <data name="AccessToken.Text" xml:space="preserve">
+    <value>Access Token</value>
+  </data>
+  <data name="AuthenticationMethod.Text" xml:space="preserve">
+    <value>Authentication method</value>
+  </data>
+  <data name="OAuth2.Text" xml:space="preserve">
+    <value>OAuth2</value>
+  </data>
 </root>
