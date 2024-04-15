@@ -129,6 +129,35 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         }
 
         /// <summary>
+        /// Retrieves the HubspotAccessToken settings.
+        /// </summary>
+        /// <returns>The HubspotAccessToken settings.</returns>
+        public new async Task<HubspotAccessTokenSetting> GetAccessTokenSettings()
+        {
+            var setting = new HubspotAccessTokenSetting { };
+            var moduleController = new ModuleController();
+            var settings = moduleController.GetModuleSettings(_moduleId);
+
+            if (settings != null)
+            {
+                setting.AccessToken = settings.ContainsKey(Constant.AccessToken) ? _encryptionHelper.DecryptString(settings[Constant.AccessToken] as string) : null;
+            }
+            return setting;
+        }
+
+        /// <summary>
+        /// Updates the HubspotAccessToken settings.
+        /// </summary>
+        /// <param name="settings">The new HubspotAccessToken settings.</param>
+        /// <returns>The updated HubspotAccessToken settings.</returns>
+        public new HubspotAccessTokenSetting UpdateAccessTokenSettings(HubspotAccessTokenSetting settings)
+        {
+            var moduleController = new ModuleController();
+            moduleController.UpdateModuleSetting(_moduleId, Constant.AccessToken, _encryptionHelper.EncryptString(settings.AccessToken.Trim()));
+            return settings;
+        }
+
+        /// <summary>
         /// Handles the OAuth callback from Hubspot.
         /// </summary>
         /// <param name="settings">The Hubspot settings.</param>
