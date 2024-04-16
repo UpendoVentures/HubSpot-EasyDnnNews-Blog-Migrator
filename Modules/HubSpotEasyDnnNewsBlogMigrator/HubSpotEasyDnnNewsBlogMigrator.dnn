@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator" type="Module" version="01.01.00">
+    <package name="UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator" type="Module" version="01.02.00">
     <friendlyName>HubSpotEasyDnnNewsBlogMigrator</friendlyName>
       <description><![CDATA[<p>Module to migrate HubSpot blog posts to EasyDNNNews</p>]]></description>
       <iconFile>DesktopModules/HubSpotEasyDnnNewsBlogMigrator/Images/logo.png</iconFile>
@@ -30,7 +30,7 @@
             <script type="UnInstall">
               <path>Providers\DataProviders\SqlDataProvider</path>
               <name>Uninstall.SqlDataProvider</name>
-              <version>01.01.00</version>
+              <version>01.02.00</version>
             </script>
           </scripts>
         </component>
@@ -76,7 +76,7 @@
             <attributes>
               <businessControllerClass>UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Components.FeatureController, UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator</businessControllerClass>
               <desktopModuleID>[DESKTOPMODULEID]</desktopModuleID>
-              <upgradeVersionsList>01.00.00,01.01.00</upgradeVersionsList>
+              <upgradeVersionsList>01.00.00,01.01.00,01.02.00</upgradeVersionsList>
             </attributes>
           </eventMessage>
         </component>
@@ -93,7 +93,7 @@
             <assembly>
               <name>UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.dll</name>
               <path>bin</path>
-              <version>01.01.00</version>
+              <version>01.02.00</version>
             </assembly>
             <assembly>
               <name>Dapper.dll</name>

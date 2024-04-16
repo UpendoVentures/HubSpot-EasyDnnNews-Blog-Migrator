@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("HubSpotEasyDnnNewsBlogMigrator")]
 [assembly: AssemblyDescription("Module to migrate HubSpot blog posts to EasyDNNNews")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("UpendoVentures")]
+[assembly: AssemblyCompany("Upendo Ventures, LLC")]
 [assembly: AssemblyProduct("HubSpotEasyDnnNewsBlogMigrator Extension for DNN")]
-[assembly: AssemblyCopyright("Copyright © 2024 UpendoVentures")]
+[assembly: AssemblyCopyright("Copyright © UpendoVentures, LLC")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -30,5 +30,5 @@ using System.Runtime.InteropServices;
 //
 // You can specify all the values or you can default the Revision and Build Numbers 
 // by using the '*' as shown below:
-[assembly: AssemblyVersion("01.01.00")]
-[assembly: AssemblyFileVersion("01.01.00")]
+[assembly: AssemblyVersion("01.02.00")]
+[assembly: AssemblyFileVersion("01.02.00")]
