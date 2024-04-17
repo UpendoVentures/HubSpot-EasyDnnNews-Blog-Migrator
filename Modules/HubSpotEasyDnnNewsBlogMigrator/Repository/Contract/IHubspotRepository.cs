@@ -33,5 +33,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contr
         Task<BlogResponse> GetPosts(string accessToken);
         Task<int> MigratePosts(string accessToken);
         Task<int> GetImageInSummary();
+        Task<int> UpdateUrlInSummary();
     }
 }
