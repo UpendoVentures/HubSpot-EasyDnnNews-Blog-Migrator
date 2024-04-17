@@ -19,13 +19,14 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div v-if="authMethod === 'OAuth2'">
                         <h5 class="card-title">{{ resx.Welcome }}</h5>
                         <p class="card-text">{{ message }}</p>
                         <span v-if="tokenExpired">
                             <ul class="dnnActions dnnClear">
-                                <li><a class="dnnPrimaryAction" @click="geturlForInitiateOAuth()">{{ resx.LogHubspot}}</a></li>
+                                <li><a class="dnnPrimaryAction" @click="geturlForInitiateOAuth()">{{
+                                    resx.LogHubspot }}</a></li>
                             </ul>
                         </span>
                         <span v-if="!tokenExpired">
@@ -35,7 +36,8 @@
                                 {{ resx.ATotalOf }} {{ postMigrated }} {{ resx.WereMigratedSuccessfully }}
                             </div>
                             <ul class="dnnActions dnnClear">
-                                <li><a class="dnnPrimaryAction" @click="migratePosts(accessToken)">{{ resx.MigratePosts }}</a></li>
+                                <li><a class="dnnPrimaryAction" @click="migratePosts(accessToken)">{{ resx.MigratePosts
+                                        }}</a></li>
                             </ul>
                         </span>
                     </div>
@@ -50,16 +52,21 @@
                                 {{ resx.ATotalOf }} {{ postMigrated }} {{ resx.WereMigratedSuccessfully }}
                             </div>
                             <ul class="dnnActions dnnClear">
-                                <li><a class="dnnPrimaryAction" @click="migratePosts(privateAccessToken)">{{ resx.MigratePosts }}</a></li>
+                                <li><a class="dnnPrimaryAction" @click="migratePosts(privateAccessToken)">{{
+                                    resx.MigratePosts }}</a></li>
                             </ul>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
+        <ul class="dnnActions dnnClear">
+            <li><a class="dnnPrimaryAction" @click="getImageInSummary()">getImageInSummary</a>
+            </li>
+        </ul>
         <div class="col-4 mx-2">
             <HubSpotSettings v-if="authMethod === 'OAuth2'" />
-            <HubSpotAccessTokenSettings v-else  @updatePrivateAccessToken="updatePrivateAccessToken"/>
+            <HubSpotAccessTokenSettings v-else @updatePrivateAccessToken="updatePrivateAccessToken" />
         </div>
         <div class="col-6">
             <MigrateImage />
@@ -96,7 +103,7 @@ const accessToken = getCookie('access_token');
 
 // Functions
 
-const updatePrivateAccessToken = async (newAccessToken ) =>{
+const updatePrivateAccessToken = async (newAccessToken) => {
     privateAccessToken.value = newAccessToken;
     await getBlogPosts(privateAccessToken.value)
 }
@@ -146,18 +153,17 @@ const getBlogPosts = async (token) => {
         if (result.Status == "error") {
             tokenExpired.value = true;
             message.value = result.Message;
-            if(token===privateAccessToken.value)
-            {
+            if (token === privateAccessToken.value) {
                 isValidPrivateAccessToken.value = false;
                 privateAccessTokenMessage.value = result.Message;
             }
-            
-        }else{
-            if(token===privateAccessToken.value){
+
+        } else {
+            if (token === privateAccessToken.value) {
                 isValidPrivateAccessToken.value = true;
                 privateAccessTokenMessage.value = '';
             }
-               
+
         }
         items.value = result;
     }
@@ -174,6 +180,15 @@ async function migratePosts(token) {
     isLoading.value = true;
     var endpoint = `${getUrlBase()}Hubspot/MigratePosts`
     const result = await makeRequest(dnnConfig, endpoint, 'get', null, token);
+    isLoading.value = false;
+    postMigrated.value = result;
+    showResults.value = true;
+}
+async function getImageInSummary() {
+    showResults.value = false;
+    isLoading.value = true;
+    var endpoint = `${getUrlBase()}Hubspot/GetImageInSummary`
+    const result = await makeRequest(dnnConfig, endpoint);
     isLoading.value = false;
     postMigrated.value = result;
     showResults.value = true;
