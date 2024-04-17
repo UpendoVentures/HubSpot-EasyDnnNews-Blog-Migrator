@@ -203,6 +203,13 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         {
             var result = await _hubspotRepository.GetImageInSummary();
             return Ok(result);
+        } 
+        
+        [HttpGet]
+        public async Task<IHttpActionResult> UpdateUrlInSummary()
+        {
+            var result = await _hubspotRepository.UpdateUrlInSummary();
+            return Ok(result);
         }
     }
 }
