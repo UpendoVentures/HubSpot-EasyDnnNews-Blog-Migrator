@@ -197,5 +197,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
                 return Ok(Localization.GetString(MissingAccessToken, ResourceFile));
             }
         }
+
+        [HttpGet]
+        public async Task<IHttpActionResult> GetImageInSummary()
+        {
+            var result = await _hubspotRepository.GetImageInSummary();
+            return Ok(result);
+        }
     }
 }
