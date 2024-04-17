@@ -26,7 +26,7 @@
                         <span v-if="tokenExpired">
                             <ul class="dnnActions dnnClear">
                                 <li><a class="dnnPrimaryAction" @click="geturlForInitiateOAuth()">{{
-                                    resx.LogHubspot }}</a></li>
+                                        resx.LogHubspot }}</a></li>
                             </ul>
                         </span>
                         <span v-if="!tokenExpired">
@@ -53,7 +53,7 @@
                             </div>
                             <ul class="dnnActions dnnClear">
                                 <li><a class="dnnPrimaryAction" @click="migratePosts(privateAccessToken)">{{
-                                    resx.MigratePosts }}</a></li>
+                                        resx.MigratePosts }}</a></li>
                             </ul>
                         </span>
                     </div>
@@ -62,6 +62,8 @@
         </div>
         <ul class="dnnActions dnnClear">
             <li><a class="dnnPrimaryAction" @click="getImageInSummary()">getImageInSummary</a>
+            </li>
+            <li><a class="dnnPrimaryAction" @click="UpdateUrlInSummary()">UpdateUrlInSummary</a>
             </li>
         </ul>
         <div class="col-4 mx-2">
@@ -188,6 +190,15 @@ async function getImageInSummary() {
     showResults.value = false;
     isLoading.value = true;
     var endpoint = `${getUrlBase()}Hubspot/GetImageInSummary`
+    const result = await makeRequest(dnnConfig, endpoint);
+    isLoading.value = false;
+    postMigrated.value = result;
+    showResults.value = true;
+}
+async function UpdateUrlInSummary() {
+    showResults.value = false;
+    isLoading.value = true;
+    var endpoint = `${getUrlBase()}Hubspot/UpdateUrlInSummary`
     const result = await makeRequest(dnnConfig, endpoint);
     isLoading.value = false;
     postMigrated.value = result;
