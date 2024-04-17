@@ -32,6 +32,9 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
 using System.Linq;
 using DotNetNuke.Web.UI.WebControls;
+using System.IO;
+using System.Net;
+using System.Web.Hosting;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -598,6 +601,142 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 var results = await _connection.QueryAsync<HubSpotEasyDNNNews>(query, new { articleID, tagID });
 
                 return results.Any();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                return false;
+            }
+        }
+
+        public async Task<int> GetImageInSummary()
+        {
+            var count = 0;
+            // Set the destination path to D:\HubSpot-Blog-Images
+            var destinationPath = @"D:\HubSpot-Blog-Images";
+
+            try
+            {
+                await CreateTempTable();
+                var images = await _connection.QueryAsync<ImageInHubspot>("SELECT * FROM ImageInHubspot");
+
+                foreach (var item in images)
+                {
+                    if (await DonwLoadImage(destinationPath, item.ImageSRC))
+                    {
+                        count++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+            return count;
+        }
+        public async Task<bool> CreateTempTable()
+        {
+            try
+            {
+                var dropQuery = @"IF OBJECT_ID('ImageInHubspot', 'U') IS NOT NULL 
+                          DROP TABLE ImageInHubspot";
+                await _connection.ExecuteAsync(dropQuery);
+                var createQuery = @"CREATE TABLE ImageInHubspot
+                            (
+                                ImageSRC NVARCHAR(MAX),
+                                ImageArticle NVARCHAR(MAX),
+                                ArticleId INT
+                            )";
+                await _connection.ExecuteAsync(createQuery);
+
+                var insertquery = @"INSERT INTO ImageInHubspot (ImageSRC, ImageArticle, ArticleId)
+                            SELECT 
+                                SUBSTRING([Summary], PATINDEX('%<img src=""https://%', [Summary]) + 10, CHARINDEX('""', SUBSTRING([Summary], PATINDEX('%<img src=""https://%', [Summary]) + 10, LEN([Summary]))) - 1) AS ImageSRC,
+                                ArticleImage AS ImageArticle,
+                                ArticleID AS ArticleId
+                            FROM EasyDNNNews
+                            WHERE Approved = N'1'
+                            AND [Summary] LIKE N'%<img src=""https://%' 
+                            AND EXISTS (
+                                SELECT *
+                                FROM EasyDNNNewsCategories
+                                WHERE EasyDNNNewsCategories.CategoryID = (
+                                    SELECT CategoryID
+                                    FROM EasyDNNNewsCategoryList
+                                    WHERE CategoryName ='Business'
+                                )
+                                AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                            )
+                            UNION ALL
+                            SELECT 
+                                SUBSTRING(Article, PATINDEX('%<img src=""https://%', Article) + 10, CHARINDEX('""', SUBSTRING(Article, PATINDEX('%<img src=""https://%', Article) + 10, LEN(Article))) - 1) AS ImageSRC,
+                                ArticleImage AS ImageArticle,
+                                ArticleID AS ArticleId
+                            FROM EasyDNNNews
+                            WHERE Approved = N'1'
+                            AND Article LIKE N'%<img src=""https://%' 
+                            AND EXISTS (
+                                SELECT *
+                                FROM EasyDNNNewsCategories
+                                WHERE EasyDNNNewsCategories.CategoryID = (
+                                    SELECT CategoryID
+                                    FROM EasyDNNNewsCategoryList
+                                    WHERE CategoryName ='Business'
+                                )
+                                AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                            )
+                            UNION ALL
+                            SELECT 
+                                SUBSTRING(CleanArticleData, PATINDEX('%<img src=""https://%', CleanArticleData) + 10, CHARINDEX('""', SUBSTRING(CleanArticleData, PATINDEX('%<img src=""https://%', CleanArticleData) + 10, LEN(CleanArticleData))) - 1) AS ImageSRC,
+                                ArticleImage AS ImageArticle,
+                                ArticleID AS ArticleId
+                            FROM EasyDNNNews
+                            WHERE Approved = N'1'
+                            AND CleanArticleData LIKE N'%<img src=""https://%' 
+                            AND EXISTS (
+                                SELECT *
+                                FROM EasyDNNNewsCategories
+                                WHERE EasyDNNNewsCategories.CategoryID = (
+                                    SELECT CategoryID
+                                    FROM EasyDNNNewsCategoryList
+                                    WHERE CategoryName ='Business'
+                                )
+                                AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                            )";
+                await _connection.ExecuteAsync(insertquery);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                return false;
+            }
+        }
+
+        public async Task<bool> DonwLoadImage(string destinationPath, string url)
+        {
+            try
+            {
+                // Check if the directory exists
+                if (!Directory.Exists(destinationPath))
+                {
+                    // If not, create it
+                    Directory.CreateDirectory(destinationPath);
+                }
+
+                // Define the destination file path
+                var destinationFilePath = Path.Combine(destinationPath, Path.GetFileName(url));
+
+                // Check if the file already exists
+                if (!File.Exists(destinationFilePath))
+                {
+                    using (WebClient client = new WebClient())
+                    {
+                        await client.DownloadFileTaskAsync(new Uri(url), destinationFilePath);
+                    }
+                    return true;
+                }
+                return false;
             }
             catch (Exception ex)
             {
