@@ -38,7 +38,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
     {
         private readonly string ResourceFile = Constant.ResxRoot;
         private readonly IHubspotRepository _hubspotRepository;
-        
+
         private const string MissingConfigurationsClientIdRedirectUri = "MissingConfigurationsClientIdRedirectUri.Text";
         private const string MissingConfigurationsClientIdRedirectUriClientSecret = "MissingConfigurationsClientIdRedirectUriClientSecret.Text";
         private const string MissingAccessToken = "MissingAccessToken.Text";
@@ -198,17 +198,27 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             }
         }
 
-        [HttpGet]
-        public async Task<IHttpActionResult> GetImageInSummary()
+        /// <summary>
+        /// Downloads images in post content.
+        /// </summary>
+        /// <param name="originFolderPath"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> DonwLoadImageInPostContent([FromBody] string originFolderPath)
         {
-            var result = await _hubspotRepository.GetImageInSummary();
+            var result = await _hubspotRepository.DonwLoadImageInPostContent(originFolderPath);
             return Ok(result);
-        } 
-        
-        [HttpGet]
-        public async Task<IHttpActionResult> UpdateUrlInSummary()
+        }
+
+        /// <summary>
+        /// Updates the URL in post content.
+        /// </summary>
+        /// <param name="originFolderPath"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> UpdateUrlInPostContent([FromBody] string originFolderPath)
         {
-            var result = await _hubspotRepository.UpdateUrlInSummary();
+            var result = await _hubspotRepository.UpdateUrlInPostContent(originFolderPath);
             return Ok(result);
         }
     }
