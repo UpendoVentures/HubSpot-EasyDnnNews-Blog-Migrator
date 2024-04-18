@@ -30,13 +30,30 @@
 		<p>THANK YOU to the following community members for participating in this release!</p>
 		<ul>
 			<li>Will Strohl, <a href="https://upendoventures.com/How/People/Will-Strohl" target="_blank">Upendo Ventures</a></li>
-			<li>Liban Silva, <a href="https://upendoventures.com/What/CMS/DNN/Extensions" target="_blank">Upendo Ventures</a></li>
+			<li>Alejandro Roman, <a href="https://upendoventures.com/What/CMS/DNN/Extensions" target="_blank">Upendo Ventures</a></li>
 		</ul>
 	
 		<h3><strong>Release Note Prefixes</strong></h3>
 		<p>The following prefixes are defined as:</p>
 		<ul>
 			<li><strong>SI:</strong> Support Inquiry - This issue was reported by a <a href="https://upendoventures.com/Support" target="_blank">support customer</a> and, as such, was prioritized above all other tasks.</li>
+		</ul>
+		<hr />
+
+		<h3>Version 01.03.00</h3>
+		<h4>Enhancements</h4>
+		<ul>
+			<li>SI: Added the ability to crawl the HubSpot blog and download the blog images. (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/pulls/31" target="_blank">Issue 31</a>, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>!)</li>
+			<!--
+			<li>SI:  (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/issues/" target="_blank">Issue </a>, thanks <a href="https://github.com/" target="_blank">@</a>!)</li>
+			-->
+		</ul>
+		<h4>Maintenence &amp Bug Fixes</h4>
+		<ul>
+			<li>SI: FK Violation Error Occurring (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/issues/26" target="_blank">Issue 26</a>, thanks <a href="https://github.com/libansilva" target="_blank">@libansilva</a>!)</li>
+			<!--
+			<li> (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/issues/" target="_blank">Issue </a>, thanks <a href="https://github.com/" target="_blank">@</a>!)</li>
+			-->
 		</ul>
 		<hr />
 
