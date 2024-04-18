@@ -37,6 +37,8 @@ using System.Net;
 using System.Web.Hosting;
 using System.Security.Policy;
 using System.Text.RegularExpressions;
+using DotNetNuke.Services.Localization;
+using System.Web;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -58,6 +60,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly IEasyDNNNewsCategoryListRepository _easyDNNNewsCategoryListRepository;
         private readonly IEasyDNNNewsGenericRepository<EasyDNNNewsNewTags> _tagsRepository;
         private readonly IEasyDNNNewsGenericRepository<EasyDNNNewsTagsItems> _tagsItemsRepository;
+        private readonly string ResourceFile = Constant.ResxRoot;
 
         private const string HttpErrorResponse = "Error making the HTTP request";
         private const string RequestErrorResponse = "Error in the request";
@@ -611,29 +614,37 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
         }
 
-        public async Task<int> UpdateUrlInSummary()
+        public async Task<int> UpdateUrlInPostContent(string originFolderPath)
         {
+            if (string.IsNullOrEmpty(originFolderPath))
+            {
+                throw new ArgumentException(Localization.GetString(Constant.LocalizationKeys.OriginFolderPathCannotNullEmpty, ResourceFile), nameof(originFolderPath));
+            }
+
             var count = 0;
-            var partialPath = @"D:\HubSpot-Blog-Images\";
-            var rootPath = Path.Combine(Path.Combine(HostingEnvironment.MapPath(Constant.Tilde), Constant.Portals, _portalId.ToString(), partialPath));
+            string protocol = HttpContext.Current.Request.IsSecureConnection ? "https://" : "http://";
+            string serverUrl = $"{protocol}{PortalSettings.Current.PortalAlias.HTTPAlias}";
+            string rootPath = Path.Combine(serverUrl, Constant.Portals, _portalId.ToString(), Constant.HubSpotImages);
 
             try
             {
                 await CreateTempTable();
                 var images = await _connection.QueryAsync<ImageInHubspot>("SELECT * FROM ImageInHubspot");
+                var destinationFolderPath = Path.Combine(Path.Combine(HostingEnvironment.MapPath(Constant.Tilde), Constant.Portals, _portalId.ToString(), Constant.HubSpotImages));
 
                 foreach (var item in images)
                 {
-                    var fileName = Path.GetFileName(item.ImageSRC);
-                    var finalDestinationPath = rootPath + fileName;
+                    await _easyDNNNewsRepository.CopyImageToFolderAsync(originFolderPath, item.ImageArticle, destinationFolderPath);
 
-                    var article = await _connection.QueryFirstOrDefaultAsync<EasyDNNNews>("SELECT * FROM EasyDNNNews WHERE ArticleId = @ArticleId", new { ArticleId = item.ArticleId });
+                    var article = await _connection.QueryFirstOrDefaultAsync<EasyDNNNews>("SELECT * FROM EasyDNNNews WHERE ArticleId = @ArticleId", new { item.ArticleId });
+                    var finalDestinationPath = rootPath + Path.GetFileName(item.ImageSRC);
 
                     if (article != null)
                     {
-                        article.Summary = Regex.Replace(article.Summary, @"<img src=""https://.*?""", $"<img src=\"{finalDestinationPath}\"");
-                        article.Article = Regex.Replace(article.Article, @"<img src=""https://.*?""", $"<img src=\"{finalDestinationPath}\"");
-                        article.CleanArticleData = Regex.Replace(article.CleanArticleData, @"<img src=""https://.*?""", $"<img src=\"{finalDestinationPath}\"");
+                        string actualItemSrc = Regex.Escape(item.ImageSRC);
+                        article.Summary = Regex.Replace(article.Summary, $@"<img src=""{actualItemSrc}""", $"<img src=\"{finalDestinationPath}\"");
+                        article.Article = Regex.Replace(article.Article, $@"<img src=""{actualItemSrc}""", $"<img src=\"{finalDestinationPath}\"");
+                        article.CleanArticleData = Regex.Replace(article.CleanArticleData, $@"<img src=""{actualItemSrc}""", $"<img src=\"{finalDestinationPath}\"");
 
                         var updateQuery = @"UPDATE EasyDNNNews 
                                     SET Summary = @Summary,
@@ -657,12 +668,15 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             return count;
         }
 
-        public async Task<int> GetImageInSummary()
+        public async Task<int> DonwLoadImageInPostContent(string originFolderPath)
         {
+            if (string.IsNullOrEmpty(originFolderPath))
+            {
+                throw new ArgumentException(Localization.GetString(Constant.LocalizationKeys.OriginFolderPathCannotNullEmpty, ResourceFile), nameof(originFolderPath));
+            }
             var count = 0;
             // Set the destination path to D:\HubSpot-Blog-Images
-            var destinationPath = @"D:\HubSpot-Blog-Images";
-
+            var destinationPath = originFolderPath;
             try
             {
                 await CreateTempTable();
@@ -705,7 +719,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 ArticleID AS ArticleId
                             FROM EasyDNNNews
                             WHERE Approved = N'1'
-                            AND [Summary] LIKE N'%<img src=""https://%' 
+                            AND [Summary] LIKE N'%<img src=""https://%'
                             AND EXISTS (
                                 SELECT *
                                 FROM EasyDNNNewsCategories
@@ -723,7 +737,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 ArticleID AS ArticleId
                             FROM EasyDNNNews
                             WHERE Approved = N'1'
-                            AND Article LIKE N'%<img src=""https://%' 
+                            AND Article LIKE N'%<img src=""https://%'
                             AND EXISTS (
                                 SELECT *
                                 FROM EasyDNNNewsCategories
@@ -741,7 +755,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                 ArticleID AS ArticleId
                             FROM EasyDNNNews
                             WHERE Approved = N'1'
-                            AND CleanArticleData LIKE N'%<img src=""https://%' 
+                            AND CleanArticleData LIKE N'%<img src=""https://%'
                             AND EXISTS (
                                 SELECT *
                                 FROM EasyDNNNewsCategories
@@ -755,60 +769,59 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 await _connection.ExecuteAsync(insertquery);
 
                 insertquery = @"INSERT INTO ImageInHubspot (ImageSRC, ImageArticle, ArticleId)
-                                SELECT 
-                                    SUBSTRING([Summary], PATINDEX('%<img src=""http://%', [Summary]) + 10, CHARINDEX('""', SUBSTRING([Summary], PATINDEX('%<img src=""http://%', [Summary]) + 10, LEN([Summary]))) - 1) AS ImageSRC,
-                                    ArticleImage AS ImageArticle,
-                                    ArticleID AS ArticleId
-                                FROM EasyDNNNews
-                                WHERE Approved = N'1'
-                                AND [Summary] LIKE N'%<img src=""http://%'
-                                AND EXISTS (
-                                    SELECT *
-                                    FROM EasyDNNNewsCategories
-                                    WHERE EasyDNNNewsCategories.CategoryID = (
-                                        SELECT CategoryID
-                                        FROM EasyDNNNewsCategoryList
-                                        WHERE CategoryName ='Business'
-                                    )
-                                    AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
-                                )
-                                UNION ALL
-                                SELECT 
-                                    SUBSTRING(Article, PATINDEX('%<img src=""http://%', Article) + 10, CHARINDEX('""', SUBSTRING(Article, PATINDEX('%<img src=""http://%', Article) + 10, LEN(Article))) - 1) AS ImageSRC,
-                                    ArticleImage AS ImageArticle,
-                                    ArticleID AS ArticleId
-                                FROM EasyDNNNews
-                                WHERE Approved = N'1'
-                                AND Article LIKE N'%<img src=""http://%'
-                                AND EXISTS (
-                                    SELECT *
-                                    FROM EasyDNNNewsCategories
-                                    WHERE EasyDNNNewsCategories.CategoryID = (
-                                        SELECT CategoryID
-                                        FROM EasyDNNNewsCategoryList
-                                        WHERE CategoryName ='Business'
-                                    )
-                                    AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
-                                )
-                                UNION ALL
-                                SELECT 
-                                    SUBSTRING(CleanArticleData, PATINDEX('%<img src=""http://%', CleanArticleData) + 10, CHARINDEX('""', SUBSTRING(CleanArticleData, PATINDEX('%<img src=""http://%', CleanArticleData) + 10, LEN(CleanArticleData))) - 1) AS ImageSRC,
-                                    ArticleImage AS ImageArticle,
-                                    ArticleID AS ArticleId
-                                FROM EasyDNNNews
-                                WHERE Approved = N'1'
-                                AND CleanArticleData LIKE N'%<img src=""http://%'
-                                AND EXISTS (
-                                    SELECT *
-                                    FROM EasyDNNNewsCategories
-                                    WHERE EasyDNNNewsCategories.CategoryID = (
-                                        SELECT CategoryID
-                                        FROM EasyDNNNewsCategoryList
-                                        WHERE CategoryName ='Business'
-                                    )
-                                    AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
-                                )
-                ";
+                        SELECT 
+                            SUBSTRING([Summary], PATINDEX('%<img src=""http://%', [Summary]) + 10, CHARINDEX('""', SUBSTRING([Summary], PATINDEX('%<img src=""http://%', [Summary]) + 10, LEN([Summary]))) - 1) AS ImageSRC,
+                            ArticleImage AS ImageArticle,
+                            ArticleID AS ArticleId
+                        FROM EasyDNNNews
+                        WHERE Approved = N'1'
+                        AND [Summary] LIKE N'%<img src=""http://%'
+                        AND EXISTS (
+                            SELECT *
+                            FROM EasyDNNNewsCategories
+                            WHERE EasyDNNNewsCategories.CategoryID = (
+                                SELECT CategoryID
+                                FROM EasyDNNNewsCategoryList
+                                WHERE CategoryName ='Business'
+                            )
+                            AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                        )
+                        UNION ALL
+                        SELECT 
+                            SUBSTRING(Article, PATINDEX('%<img src=""http://%', Article) + 10, CHARINDEX('""', SUBSTRING(Article, PATINDEX('%<img src=""http://%', Article) + 10, LEN(Article))) - 1) AS ImageSRC,
+                            ArticleImage AS ImageArticle,
+                            ArticleID AS ArticleId
+                        FROM EasyDNNNews
+                        WHERE Approved = N'1'
+                        AND Article LIKE N'%<img src=""http://%'
+                        AND EXISTS (
+                            SELECT *
+                            FROM EasyDNNNewsCategories
+                            WHERE EasyDNNNewsCategories.CategoryID = (
+                                SELECT CategoryID
+                                FROM EasyDNNNewsCategoryList
+                                WHERE CategoryName ='Business'
+                            )
+                            AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                        )
+                        UNION ALL
+                        SELECT 
+                            SUBSTRING(CleanArticleData, PATINDEX('%<img src=""http://%', CleanArticleData) + 10, CHARINDEX('""', SUBSTRING(CleanArticleData, PATINDEX('%<img src=""http://%', CleanArticleData) + 10, LEN(CleanArticleData))) - 1) AS ImageSRC,
+                            ArticleImage AS ImageArticle,
+                            ArticleID AS ArticleId
+                        FROM EasyDNNNews
+                        WHERE Approved = N'1'
+                        AND CleanArticleData LIKE N'%<img src=""http://%'
+                        AND EXISTS (
+                            SELECT *
+                            FROM EasyDNNNewsCategories
+                            WHERE EasyDNNNewsCategories.CategoryID = (
+                                SELECT CategoryID
+                                FROM EasyDNNNewsCategoryList
+                                WHERE CategoryName ='Business'
+                            )
+                            AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                        )";
                 await _connection.ExecuteAsync(insertquery);
                 return true;
             }
