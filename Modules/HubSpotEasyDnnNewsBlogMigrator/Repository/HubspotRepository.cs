@@ -32,6 +32,13 @@ using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
 using System.Linq;
 using DotNetNuke.Web.UI.WebControls;
+using System.IO;
+using System.Net;
+using System.Web.Hosting;
+using System.Security.Policy;
+using System.Text.RegularExpressions;
+using DotNetNuke.Services.Localization;
+using System.Web;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -53,6 +60,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         private readonly IEasyDNNNewsCategoryListRepository _easyDNNNewsCategoryListRepository;
         private readonly IEasyDNNNewsGenericRepository<EasyDNNNewsNewTags> _tagsRepository;
         private readonly IEasyDNNNewsGenericRepository<EasyDNNNewsTagsItems> _tagsItemsRepository;
+        private readonly string ResourceFile = Constant.ResxRoot;
 
         private const string HttpErrorResponse = "Error making the HTTP request";
         private const string RequestErrorResponse = "Error in the request";
@@ -598,6 +606,254 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 var results = await _connection.QueryAsync<HubSpotEasyDNNNews>(query, new { articleID, tagID });
 
                 return results.Any();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                return false;
+            }
+        }
+
+        public async Task<int> UpdateUrlInPostContent(string originFolderPath)
+        {
+            if (string.IsNullOrEmpty(originFolderPath))
+            {
+                throw new ArgumentException(Localization.GetString(Constant.LocalizationKeys.OriginFolderPathCannotNullEmpty, ResourceFile), nameof(originFolderPath));
+            }
+
+            var count = 0;
+            string rootPath = $"/{Constant.Portals}/{_portalId.ToString()}/{Constant.HubSpotImages}/";
+
+            try
+            {
+                await CreateTempTable();
+                var images = await _connection.QueryAsync<ImageInHubspot>("SELECT * FROM ImageInHubspot");
+                var destinationFolderPath = Path.Combine(Path.Combine(HostingEnvironment.MapPath(Constant.Tilde), Constant.Portals, _portalId.ToString(), Constant.HubSpotImages));
+
+                foreach (var item in images)
+                {
+                    await _easyDNNNewsRepository.CopyImageToFolderAsync(originFolderPath, item.ImageArticle, destinationFolderPath);
+
+                    var article = await _connection.QueryFirstOrDefaultAsync<EasyDNNNews>("SELECT * FROM EasyDNNNews WHERE ArticleId = @ArticleId", new { item.ArticleId });
+                    var finalDestinationPath = $"{rootPath}{Path.GetFileName(item.ImageSRC)}";
+
+                    if (article != null)
+                    {
+                        string actualItemSrc = Regex.Escape(item.ImageSRC);
+                        article.Summary = Regex.Replace(article.Summary, $@"<img src=""{actualItemSrc}""", $"<img src=\"{finalDestinationPath}\"");
+                        article.Article = Regex.Replace(article.Article, $@"<img src=""{actualItemSrc}""", $"<img src=\"{finalDestinationPath}\"");
+                        article.CleanArticleData = Regex.Replace(article.CleanArticleData, $@"<img src=""{actualItemSrc}""", $"<img src=\"{finalDestinationPath}\"");
+
+                        var updateQuery = @"UPDATE EasyDNNNews 
+                                    SET Summary = @Summary,
+                                        Article = @Article,
+                                        CleanArticleData = @CleanArticleData
+                                    WHERE ArticleId = @ArticleId";
+
+                        var affectedRows = await _connection.ExecuteAsync(updateQuery, article);
+
+                        if (affectedRows > 0)
+                        {
+                            count++;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+            return count;
+        }
+
+        public async Task<int> DonwLoadImageInPostContent(string originFolderPath)
+        {
+            if (string.IsNullOrEmpty(originFolderPath))
+            {
+                throw new ArgumentException(Localization.GetString(Constant.LocalizationKeys.OriginFolderPathCannotNullEmpty, ResourceFile), nameof(originFolderPath));
+            }
+            var count = 0;
+            // Set the destination path to D:\HubSpot-Blog-Images
+            var destinationPath = originFolderPath;
+            try
+            {
+                await CreateTempTable();
+                var images = await _connection.QueryAsync<ImageInHubspot>("SELECT * FROM ImageInHubspot");
+
+                foreach (var item in images)
+                {
+                    if (await DonwLoadImage(destinationPath, item.ImageSRC))
+                    {
+                        count++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+            return count;
+        }
+
+        public async Task<bool> CreateTempTable()
+        {
+            try
+            {
+                var dropQuery = @"IF OBJECT_ID('ImageInHubspot', 'U') IS NOT NULL 
+                          DROP TABLE ImageInHubspot";
+                await _connection.ExecuteAsync(dropQuery);
+                var createQuery = @"CREATE TABLE ImageInHubspot
+                            (
+                                ImageSRC NVARCHAR(MAX),
+                                ImageArticle NVARCHAR(MAX),
+                                ArticleId INT
+                            )";
+                await _connection.ExecuteAsync(createQuery);
+
+                var insertquery = @"INSERT INTO ImageInHubspot (ImageSRC, ImageArticle, ArticleId)
+                            SELECT 
+                                SUBSTRING([Summary], PATINDEX('%<img src=""https://%', [Summary]) + 10, CHARINDEX('""', SUBSTRING([Summary], PATINDEX('%<img src=""https://%', [Summary]) + 10, LEN([Summary]))) - 1) AS ImageSRC,
+                                ArticleImage AS ImageArticle,
+                                ArticleID AS ArticleId
+                            FROM EasyDNNNews
+                            WHERE Approved = N'1'
+                            AND [Summary] LIKE N'%<img src=""https://%'
+                            AND EXISTS (
+                                SELECT *
+                                FROM EasyDNNNewsCategories
+                                WHERE EasyDNNNewsCategories.CategoryID = (
+                                    SELECT CategoryID
+                                    FROM EasyDNNNewsCategoryList
+                                    WHERE CategoryName ='Business'
+                                )
+                                AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                            )
+                            UNION ALL
+                            SELECT 
+                                SUBSTRING(Article, PATINDEX('%<img src=""https://%', Article) + 10, CHARINDEX('""', SUBSTRING(Article, PATINDEX('%<img src=""https://%', Article) + 10, LEN(Article))) - 1) AS ImageSRC,
+                                ArticleImage AS ImageArticle,
+                                ArticleID AS ArticleId
+                            FROM EasyDNNNews
+                            WHERE Approved = N'1'
+                            AND Article LIKE N'%<img src=""https://%'
+                            AND EXISTS (
+                                SELECT *
+                                FROM EasyDNNNewsCategories
+                                WHERE EasyDNNNewsCategories.CategoryID = (
+                                    SELECT CategoryID
+                                    FROM EasyDNNNewsCategoryList
+                                    WHERE CategoryName ='Business'
+                                )
+                                AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                            )
+                            UNION ALL
+                            SELECT 
+                                SUBSTRING(CleanArticleData, PATINDEX('%<img src=""https://%', CleanArticleData) + 10, CHARINDEX('""', SUBSTRING(CleanArticleData, PATINDEX('%<img src=""https://%', CleanArticleData) + 10, LEN(CleanArticleData))) - 1) AS ImageSRC,
+                                ArticleImage AS ImageArticle,
+                                ArticleID AS ArticleId
+                            FROM EasyDNNNews
+                            WHERE Approved = N'1'
+                            AND CleanArticleData LIKE N'%<img src=""https://%'
+                            AND EXISTS (
+                                SELECT *
+                                FROM EasyDNNNewsCategories
+                                WHERE EasyDNNNewsCategories.CategoryID = (
+                                    SELECT CategoryID
+                                    FROM EasyDNNNewsCategoryList
+                                    WHERE CategoryName ='Business'
+                                )
+                                AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                            )";
+                await _connection.ExecuteAsync(insertquery);
+
+                insertquery = @"INSERT INTO ImageInHubspot (ImageSRC, ImageArticle, ArticleId)
+                        SELECT 
+                            SUBSTRING([Summary], PATINDEX('%<img src=""http://%', [Summary]) + 10, CHARINDEX('""', SUBSTRING([Summary], PATINDEX('%<img src=""http://%', [Summary]) + 10, LEN([Summary]))) - 1) AS ImageSRC,
+                            ArticleImage AS ImageArticle,
+                            ArticleID AS ArticleId
+                        FROM EasyDNNNews
+                        WHERE Approved = N'1'
+                        AND [Summary] LIKE N'%<img src=""http://%'
+                        AND EXISTS (
+                            SELECT *
+                            FROM EasyDNNNewsCategories
+                            WHERE EasyDNNNewsCategories.CategoryID = (
+                                SELECT CategoryID
+                                FROM EasyDNNNewsCategoryList
+                                WHERE CategoryName ='Business'
+                            )
+                            AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                        )
+                        UNION ALL
+                        SELECT 
+                            SUBSTRING(Article, PATINDEX('%<img src=""http://%', Article) + 10, CHARINDEX('""', SUBSTRING(Article, PATINDEX('%<img src=""http://%', Article) + 10, LEN(Article))) - 1) AS ImageSRC,
+                            ArticleImage AS ImageArticle,
+                            ArticleID AS ArticleId
+                        FROM EasyDNNNews
+                        WHERE Approved = N'1'
+                        AND Article LIKE N'%<img src=""http://%'
+                        AND EXISTS (
+                            SELECT *
+                            FROM EasyDNNNewsCategories
+                            WHERE EasyDNNNewsCategories.CategoryID = (
+                                SELECT CategoryID
+                                FROM EasyDNNNewsCategoryList
+                                WHERE CategoryName ='Business'
+                            )
+                            AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                        )
+                        UNION ALL
+                        SELECT 
+                            SUBSTRING(CleanArticleData, PATINDEX('%<img src=""http://%', CleanArticleData) + 10, CHARINDEX('""', SUBSTRING(CleanArticleData, PATINDEX('%<img src=""http://%', CleanArticleData) + 10, LEN(CleanArticleData))) - 1) AS ImageSRC,
+                            ArticleImage AS ImageArticle,
+                            ArticleID AS ArticleId
+                        FROM EasyDNNNews
+                        WHERE Approved = N'1'
+                        AND CleanArticleData LIKE N'%<img src=""http://%'
+                        AND EXISTS (
+                            SELECT *
+                            FROM EasyDNNNewsCategories
+                            WHERE EasyDNNNewsCategories.CategoryID = (
+                                SELECT CategoryID
+                                FROM EasyDNNNewsCategoryList
+                                WHERE CategoryName ='Business'
+                            )
+                            AND EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                        )";
+                await _connection.ExecuteAsync(insertquery);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                return false;
+            }
+        }
+
+        public async Task<bool> DonwLoadImage(string destinationPath, string url)
+        {
+            try
+            {
+                // Check if the directory exists
+                if (!Directory.Exists(destinationPath))
+                {
+                    // If not, create it
+                    Directory.CreateDirectory(destinationPath);
+                }
+
+                // Define the destination file path
+                var destinationFilePath = Path.Combine(destinationPath, Path.GetFileName(url));
+
+                // Check if the file already exists
+                if (!File.Exists(destinationFilePath))
+                {
+                    using (WebClient client = new WebClient())
+                    {
+                        await client.DownloadFileTaskAsync(new Uri(url), destinationFilePath);
+                    }
+                    return true;
+                }
+                return false;
             }
             catch (Exception ex)
             {

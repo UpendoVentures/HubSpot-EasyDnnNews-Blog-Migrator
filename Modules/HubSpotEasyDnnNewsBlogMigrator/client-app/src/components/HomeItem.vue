@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <div class="col-8">
+        <div class="col-7">
             <div class="card">
                 <div class="card-body">
                     <div class="mb-2">
@@ -18,14 +18,15 @@
                                 <label class="form-check-label" for="rAccessToken"> {{ resx.AccessToken }}</label>
                             </div>
                         </div>
-                    </div>
-                    
+                    </div>                   
+
                     <div v-if="authMethod === 'OAuth2'">
                         <h5 class="card-title">{{ resx.Welcome }}</h5>
                         <p class="card-text">{{ message }}</p>
                         <span v-if="tokenExpired">
                             <ul class="dnnActions dnnClear">
-                                <li><a class="dnnPrimaryAction" @click="geturlForInitiateOAuth()">{{ resx.LogHubspot}}</a></li>
+                                <li><a class="dnnPrimaryAction" @click="geturlForInitiateOAuth()">{{
+                                        resx.LogHubspot }}</a></li>
                             </ul>
                         </span>
                         <span v-if="!tokenExpired">
@@ -35,7 +36,8 @@
                                 {{ resx.ATotalOf }} {{ postMigrated }} {{ resx.WereMigratedSuccessfully }}
                             </div>
                             <ul class="dnnActions dnnClear">
-                                <li><a class="dnnPrimaryAction" @click="migratePosts(accessToken)">{{ resx.MigratePosts }}</a></li>
+                                <li><a class="dnnPrimaryAction" @click="migratePosts(accessToken)">{{ resx.MigratePosts
+                                        }}</a></li>
                             </ul>
                         </span>
                     </div>
@@ -50,18 +52,19 @@
                                 {{ resx.ATotalOf }} {{ postMigrated }} {{ resx.WereMigratedSuccessfully }}
                             </div>
                             <ul class="dnnActions dnnClear">
-                                <li><a class="dnnPrimaryAction" @click="migratePosts(privateAccessToken)">{{ resx.MigratePosts }}</a></li>
+                                <li><a class="dnnPrimaryAction" @click="migratePosts(privateAccessToken)">{{
+                                        resx.MigratePosts }}</a></li>
                             </ul>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-4 mx-2">
+        <div class="col-4 mx-1">
             <HubSpotSettings v-if="authMethod === 'OAuth2'" />
-            <HubSpotAccessTokenSettings v-else  @updatePrivateAccessToken="updatePrivateAccessToken"/>
+            <HubSpotAccessTokenSettings v-else @updatePrivateAccessToken="updatePrivateAccessToken" />
         </div>
-        <div class="col-6">
+        <div class="col-8">
             <MigrateImage />
         </div>
     </div>
@@ -96,7 +99,7 @@ const accessToken = getCookie('access_token');
 
 // Functions
 
-const updatePrivateAccessToken = async (newAccessToken ) =>{
+const updatePrivateAccessToken = async (newAccessToken) => {
     privateAccessToken.value = newAccessToken;
     await getBlogPosts(privateAccessToken.value)
 }
@@ -146,18 +149,17 @@ const getBlogPosts = async (token) => {
         if (result.Status == "error") {
             tokenExpired.value = true;
             message.value = result.Message;
-            if(token===privateAccessToken.value)
-            {
+            if (token === privateAccessToken.value) {
                 isValidPrivateAccessToken.value = false;
                 privateAccessTokenMessage.value = result.Message;
             }
-            
-        }else{
-            if(token===privateAccessToken.value){
+
+        } else {
+            if (token === privateAccessToken.value) {
                 isValidPrivateAccessToken.value = true;
                 privateAccessTokenMessage.value = '';
             }
-               
+
         }
         items.value = result;
     }

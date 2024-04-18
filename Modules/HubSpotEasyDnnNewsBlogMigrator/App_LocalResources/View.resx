@@ -198,4 +198,25 @@
   <data name="OAuth2.Text" xml:space="preserve">
     <value>OAuth2</value>
   </data>
+  <data name="Download.Text" xml:space="preserve">
+    <value>Download images</value>
+  </data>
+  <data name="PathToSaveImages.Text" xml:space="preserve">
+    <value>Path where you want to save the images</value>
+  </data>
+  <data name="RetrieveLocallyStoreImages.Text" xml:space="preserve">
+    <value>Retrieve and locally store images embedded in HubSpot post content using programmatic HTTP requests.</value>
+  </data>
+  <data name="SelectOptionToAdjustImages.Text" xml:space="preserve">
+    <value>Select an option to adjust images in posts migrated to EasyDNNnews.</value>
+  </data>
+  <data name="TransferTheMainImage.Text" xml:space="preserve">
+    <value>Transfer the main image of each post from the designated location to the EasyDNNnews module.</value>
+  </data>
+  <data name="Update.Text" xml:space="preserve">
+    <value>Update images</value>
+  </data>
+  <data name="UpdateImageReferences.Text" xml:space="preserve">
+    <value>Update image references in post content to point to the local location instead of the HubSpot server.</value>
+  </data>
 </root>
