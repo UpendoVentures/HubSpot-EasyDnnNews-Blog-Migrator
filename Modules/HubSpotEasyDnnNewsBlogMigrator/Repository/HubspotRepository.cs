@@ -622,9 +622,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             }
 
             var count = 0;
-            string protocol = HttpContext.Current.Request.IsSecureConnection ? "https://" : "http://";
-            string serverUrl = $"{protocol}{PortalSettings.Current.PortalAlias.HTTPAlias}";
-            string rootPath = Path.Combine(serverUrl, Constant.Portals, _portalId.ToString(), Constant.HubSpotImages);
+            string rootPath = $"/{Constant.Portals}/{_portalId.ToString()}/{Constant.HubSpotImages}/";
 
             try
             {
@@ -637,7 +635,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                     await _easyDNNNewsRepository.CopyImageToFolderAsync(originFolderPath, item.ImageArticle, destinationFolderPath);
 
                     var article = await _connection.QueryFirstOrDefaultAsync<EasyDNNNews>("SELECT * FROM EasyDNNNews WHERE ArticleId = @ArticleId", new { item.ArticleId });
-                    var finalDestinationPath = rootPath + Path.GetFileName(item.ImageSRC);
+                    var finalDestinationPath = $"{rootPath}{Path.GetFileName(item.ImageSRC)}";
 
                     if (article != null)
                     {
