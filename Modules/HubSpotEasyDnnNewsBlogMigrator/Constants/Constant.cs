@@ -124,6 +124,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants
         public const string Portals = "Portals";
         public const string EasyDNNNews = "EasyDNNNews";
 
+        public const string HubSpotImages = "HubSpotImages";
+
         internal static class LocalizationKeys
         {
             public const string OriginFolderPathCannotNullEmpty = "OriginFolderPathCannotNullEmpty.Text";
