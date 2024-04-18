@@ -18,7 +18,7 @@
                                 <label class="form-check-label" for="rAccessToken"> {{ resx.AccessToken }}</label>
                             </div>
                         </div>
-                    </div>
+                    </div>                   
 
                     <div v-if="authMethod === 'OAuth2'">
                         <h5 class="card-title">{{ resx.Welcome }}</h5>
@@ -60,17 +60,11 @@
                 </div>
             </div>
         </div>
-        <ul class="dnnActions dnnClear">
-            <li><a class="dnnPrimaryAction" @click="getImageInSummary()">getImageInSummary</a>
-            </li>
-            <li><a class="dnnPrimaryAction" @click="UpdateUrlInSummary()">UpdateUrlInSummary</a>
-            </li>
-        </ul>
         <div class="col-4 mx-2">
             <HubSpotSettings v-if="authMethod === 'OAuth2'" />
             <HubSpotAccessTokenSettings v-else @updatePrivateAccessToken="updatePrivateAccessToken" />
         </div>
-        <div class="col-6">
+        <div class="col-8">
             <MigrateImage />
         </div>
     </div>
@@ -182,24 +176,6 @@ async function migratePosts(token) {
     isLoading.value = true;
     var endpoint = `${getUrlBase()}Hubspot/MigratePosts`
     const result = await makeRequest(dnnConfig, endpoint, 'get', null, token);
-    isLoading.value = false;
-    postMigrated.value = result;
-    showResults.value = true;
-}
-async function getImageInSummary() {
-    showResults.value = false;
-    isLoading.value = true;
-    var endpoint = `${getUrlBase()}Hubspot/GetImageInSummary`
-    const result = await makeRequest(dnnConfig, endpoint);
-    isLoading.value = false;
-    postMigrated.value = result;
-    showResults.value = true;
-}
-async function UpdateUrlInSummary() {
-    showResults.value = false;
-    isLoading.value = true;
-    var endpoint = `${getUrlBase()}Hubspot/UpdateUrlInSummary`
-    const result = await makeRequest(dnnConfig, endpoint);
     isLoading.value = false;
     postMigrated.value = result;
     showResults.value = true;
