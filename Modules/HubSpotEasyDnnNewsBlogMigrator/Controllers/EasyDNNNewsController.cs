@@ -19,6 +19,7 @@ using DotNetNuke.Security;
 using System.Threading.Tasks;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
+using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
 {
@@ -49,6 +50,28 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
         public async Task<IHttpActionResult> MigrateImagesToEasyDNNNews([FromBody] string originFolderPath)
         {
             var result = await _easyDNNNewsRepository.MigrateImagesToEasyDNNNews(originFolderPath);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Remove duplicate images.
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> RemoveDuplicateImages()
+        {
+            var result = await _easyDNNNewsRepository.RemoveDuplicateImages();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Replace image urls.
+        /// <paramref name="parameters"/>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> ReplaceImageUrls([FromBody] ReplaceImageUrlParams parameters)
+        {
+            var result = await _easyDNNNewsRepository.ReplaceImageUrls(parameters.DomainToReplace, parameters.PartialPath,parameters.SkipSegments);
             return Ok(result);
         }
     }
