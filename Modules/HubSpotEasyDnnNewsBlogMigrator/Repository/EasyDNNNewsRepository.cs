@@ -28,6 +28,10 @@ using System.Collections.Generic;
 using System.Web.Hosting;
 using DotNetNuke.Services.Localization;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
+using HtmlAgilityPack;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection;
+using System.Text;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -73,6 +77,33 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         }
 
         /// <summary>
+        /// Retrieves a list of EasyDNNNews with main image.
+        /// </summary>
+        /// <returns></returns>     
+        public async Task<IEnumerable<EasyDNNNews>> GetEasyDNNNewsWithMainImage()
+        {
+            IEnumerable<EasyDNNNews> result = null;
+            try
+            {
+                // Get the name of the table associated with the entity type.
+                string tableName = GetSingleTableName();
+
+                // Construct an SQL query to select all records from the table.
+                string query = $"SELECT * FROM {tableName} WHERE [ArticleImage] IS NOT NULL OR [ArticleImage] <> '' ORDER BY [ArticleID]";
+
+                // Execute the query asynchronously and retrieve the results into a collection.
+                result = await _connection.QueryAsync<EasyDNNNews>(query);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+
+            // Return a collection containing all entities of type T found in the database.
+            return result;
+        }
+
+        /// <summary>
         /// Adds a new entity of type EasyDNNNews to the database.
         /// </summary>
         /// <param name="entity">The entity to add to the database.</param>
@@ -104,6 +135,52 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 
             // Return the ID of the inserted row.
             return insertedId;
+        }
+
+        public async Task<bool> UpdateEasyDNNNews(EasyDNNNews entity)
+        {
+            int rowsEffected = 0;
+            try
+            {
+                // Get the name of the table associated with the entity type.
+                string tableName = GetSingleTableName();
+
+                // Get the name of the primary key column for the entity.
+                string keyColumn = GetKeyColumnName();
+
+                // Get the name of the primary key property for the entity.
+                string keyProperty = GetKeyPropertyName();
+
+                // Initialize a StringBuilder to construct the SQL update query.
+                StringBuilder query = new StringBuilder();
+                query.Append($"UPDATE {tableName} SET ");
+
+                // Iterate through the entity properties.
+                foreach (var property in GetProperties(true))
+                {
+                    string propertyName = property.Name;
+                    string columnName = property.Name;
+
+                    // Append each property assignment in the update query.
+                    query.Append($"{columnName} = @{propertyName},");
+                }
+
+                // Remove the trailing comma from the query.
+                query.Remove(query.Length - 1, 1);
+
+                // Append the WHERE clause to identify the entity to update by its primary key.
+                query.Append($" WHERE {keyColumn} = @{keyProperty}");
+
+                // Execute the update query asynchronously with the provided entity data.
+                rowsEffected = await _connection.ExecuteAsync(query.ToString(), entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+
+            // Return true if at least one row is affected by the update; otherwise, return false.
+            return rowsEffected > 0;
         }
 
         /// <summary>
@@ -220,7 +297,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                     {
                         var destinationFolderPath = Path.Combine(Path.Combine(HostingEnvironment.MapPath(Constant.Tilde), Constant.Portals, _portalId.ToString(), Constant.EasyDNNNews, item.ArticleID.ToString()));
                         var copyImage = await CopyImageToFolderAsync(originFolderPath, item.ArticleImage, destinationFolderPath);
-                       
+
                         if (copyImage)
                         {
                             result++;
@@ -284,6 +361,175 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 }
             }
             return copyImage;
+        }
+
+        /// <summary>
+        /// Remove duplicate images from EasyDNNNews in Article and ArticleImage.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<int> RemoveDuplicateImages()
+        {
+            var easyDNNNews = await GetEasyDNNNewsWithMainImage();
+            var result = 0;
+
+            foreach (var item in easyDNNNews)
+            {
+                if (!string.IsNullOrEmpty(item.ArticleImage))
+                {
+                    try
+                    {
+                        // For Article
+                        var doc = new HtmlDocument();
+                        doc.LoadHtml(item.Article);
+                        RemoveImageNodes(doc, item.ArticleImage);
+                        item.Article = doc.DocumentNode.OuterHtml;
+
+                        // For Summary
+                        doc = new HtmlDocument();
+                        doc.LoadHtml(item.Summary);
+                        RemoveImageNodes(doc, item.ArticleImage);
+                        item.Summary = doc.DocumentNode.OuterHtml;
+
+                        // For CleanArticleData
+                        doc = new HtmlDocument();
+                        doc.LoadHtml(item.CleanArticleData);
+                        RemoveImageNodes(doc, item.ArticleImage);
+                        item.CleanArticleData = doc.DocumentNode.OuterHtml;
+
+                        var rowsEffected = await UpdateEasyDNNNews(item);
+                        if (rowsEffected) { result++; }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex);
+                    }
+                }
+            }
+            return result;
+        }
+
+        public async Task<int> ReplaceImageUrls(string domainToReplace, string partialPath, int skipSegments)
+        {
+            var easyDNNNews = await GetAllEasyDNNNews();
+            var result = 0;
+
+            foreach (var item in easyDNNNews)
+            {
+                if (item.ArticleID == 100713)
+                {
+                    var id = 100713;
+                }
+                try
+                {
+                    // For Article
+                    var doc = new HtmlDocument();
+                    doc.LoadHtml(item.Article);
+                    RemoveDuplicateSrcAttributes(doc);
+                    bool replaced = ReplaceImageNodes(doc, domainToReplace, partialPath, skipSegments);
+                    item.Article = doc.DocumentNode.OuterHtml;
+
+                    // For Summary
+                    doc = new HtmlDocument();
+                    doc.LoadHtml(item.Summary);
+                    RemoveDuplicateSrcAttributes(doc);
+                    replaced = replaced || ReplaceImageNodes(doc, domainToReplace, partialPath, skipSegments);
+                    item.Summary = doc.DocumentNode.OuterHtml;
+
+                    // For CleanArticleData
+                    doc = new HtmlDocument();
+                    doc.LoadHtml(item.CleanArticleData);
+                    RemoveDuplicateSrcAttributes(doc);
+                    replaced = replaced || ReplaceImageNodes(doc, domainToReplace, partialPath, skipSegments);
+                    item.CleanArticleData = doc.DocumentNode.OuterHtml;
+
+                    var rowsEffected = await UpdateEasyDNNNews(item);
+                    if (rowsEffected && replaced) { result++; }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex);
+                }
+            }
+            return result;
+        }
+
+        private void RemoveImageNodes(HtmlDocument doc, string imageName)
+        {
+            var nodes = doc.DocumentNode.SelectNodes("//img");
+
+            if (nodes != null)
+            {
+                foreach (var node in nodes)
+                {
+                    var src = node.GetAttributeValue("src", "");
+                    var fileName = Path.GetFileName(src);
+
+                    if (fileName == imageName)
+                    {
+                        var parent = node.ParentNode;
+                        if (parent.Name == "p" && parent.ChildNodes.Count == 1)
+                        {
+                            parent.Remove();
+                        }
+                        else
+                        {
+                            node.Remove();
+                        }
+                    }
+                }
+            }
+        }
+        private bool ReplaceImageNodes(HtmlDocument doc, string domainToReplace, string partialPath, int skipSegments)
+        {
+            var nodes = doc.DocumentNode.SelectNodes("//img");
+            bool replaced = false;
+
+            if (nodes != null)
+            {
+                foreach (var node in nodes)
+                {
+                    var src = node.GetAttributeValue("src", "");
+
+                    if (src.Contains(domainToReplace))
+                    {
+                        var uri = new Uri(src);
+                        var segments = uri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        // Skip the first two segments
+                        var newSegments = segments.Skip(skipSegments);
+
+                        // Reconstruct the path
+                        var newPath = string.Join("/", newSegments);
+
+                        var newSrc = partialPath + newPath;
+                        node.SetAttributeValue("src", newSrc);
+                        replaced = true;
+                    }
+                }
+            }
+            return replaced;
+        }
+        private async void RemoveDuplicateSrcAttributes(HtmlDocument doc)
+        {
+            var nodes = doc.DocumentNode.SelectNodes("//img");
+
+            if (nodes != null)
+            {
+                foreach (var node in nodes)
+                {
+                    var srcAttributes = node.Attributes.Where(a => a.Name == "src").ToList();
+
+                    // If there are more than one 'src' attribute
+                    if (srcAttributes.Count > 1)
+                    {
+                        // Keep the first 'src' attribute and remove the rest
+                        for (int i = 1; i < srcAttributes.Count; i++)
+                        {
+                            node.Attributes.Remove(srcAttributes[i]);
+                        }
+                    }
+                }
+            }
         }
     }
 }
