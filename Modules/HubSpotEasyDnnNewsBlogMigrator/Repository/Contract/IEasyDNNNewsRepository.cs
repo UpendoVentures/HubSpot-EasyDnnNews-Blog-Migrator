@@ -26,5 +26,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contr
         Task<EasyDNNNewsCategoryList> GetCategoryListByName(string categoryName);
         Task<int> MigrateImagesToEasyDNNNews(string originFolderPath);
         Task<bool> CopyImageToFolderAsync(string sourcePath, string articleImage, string destinationPath);
+        Task<int> RemoveDuplicateImages();
+        Task<int> ReplaceImageUrls(string domainToReplace, string partialPath, int skipSegments);
     }
 }
