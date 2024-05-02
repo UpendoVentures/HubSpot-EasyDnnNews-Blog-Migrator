@@ -531,5 +531,79 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 }
             }
         }
+
+        /// <summary>
+        /// Replace the absolute urls in the article, summary and cleanArticleData with the domainToReplace
+        /// </summary>
+        /// <param name="domainToReplace"></param>
+        /// <returns></returns>
+        public async Task<int> ReplaceAbsoluteUrls(string domainToReplace)
+        {
+            var easyDNNNews = await GetAllEasyDNNNews();
+            var result = 0;
+
+            foreach (var item in easyDNNNews)
+            {
+                try
+                {
+                    // For Article
+                    var doc = new HtmlDocument();
+                    doc.LoadHtml(item.Article);
+                    bool replaced = ReplaceAnchorNodes(doc, domainToReplace);
+                    item.Article = doc.DocumentNode.OuterHtml;
+
+                    // For Summary
+                    doc = new HtmlDocument();
+                    doc.LoadHtml(item.Summary);
+                    replaced = replaced || ReplaceAnchorNodes(doc, domainToReplace);
+                    item.Summary = doc.DocumentNode.OuterHtml;
+
+                    // For CleanArticleData
+                    doc = new HtmlDocument();
+                    doc.LoadHtml(item.CleanArticleData);
+                    replaced = replaced || ReplaceAnchorNodes(doc, domainToReplace);
+                    item.CleanArticleData = doc.DocumentNode.OuterHtml;
+
+                    var rowsEffected = await UpdateEasyDNNNews(item);
+                    if (rowsEffected && replaced) { result++; }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex);
+                }
+            }
+            return result;
+        }
+
+        private bool ReplaceAnchorNodes(HtmlDocument doc, string domainToReplace)
+        {
+            var nodes = doc.DocumentNode.SelectNodes("//a");
+            bool replaced = false;
+
+            if (nodes != null)
+            {
+                foreach (var node in nodes)
+                {
+                    var href = node.GetAttributeValue("href", "");
+
+                    if (href.StartsWith(domainToReplace))
+                    {
+                        var uri = new Uri(href);
+                        var newPath = uri.AbsolutePath;
+                        node.SetAttributeValue("href", newPath);
+                        replaced = true;
+                    }
+                    if (href.Contains($".{domainToReplace}"))
+                    {
+                        var uri = new Uri(href);
+                        var locationName = uri.Host.Split('.').First(); // Get the subdomain which is the location name
+                        var newPath = $"/locations/{locationName}{uri.AbsolutePath}";
+                        node.SetAttributeValue("href", newPath);
+                        replaced = true;
+                    }
+                }
+            }
+            return replaced;
+        }
     }
 }
