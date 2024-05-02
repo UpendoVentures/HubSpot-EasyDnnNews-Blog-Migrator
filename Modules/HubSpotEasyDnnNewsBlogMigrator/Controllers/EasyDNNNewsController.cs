@@ -74,5 +74,17 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             var result = await _easyDNNNewsRepository.ReplaceImageUrls(parameters.DomainToReplace, parameters.PartialPath,parameters.SkipSegments);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Replace absolute urls.
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> ReplaceAbsoluteUrls([FromBody] ReplaceImageUrlParams parameters)
+        {
+            var result = await _easyDNNNewsRepository.ReplaceAbsoluteUrls(parameters.DomainToReplace);
+            return Ok(result);
+        }
     }
 }
