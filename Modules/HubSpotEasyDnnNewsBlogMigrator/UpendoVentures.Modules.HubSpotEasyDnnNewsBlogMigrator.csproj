@@ -55,6 +55,7 @@
     <PackageReference Include="DotNetNuke.Web" Version="9.11.0" />
     <PackageReference Include="DotNetNuke.Web.Client" Version="9.11.0" />
     <PackageReference Include="DotNetNuke.WebApi" Version="9.11.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
   <ItemGroup>
@@ -120,6 +121,7 @@
     <Compile Include="ViewModels\HubspotAccessTokenSetting.cs" />
     <Compile Include="ViewModels\HubspotSetting.cs" />
     <Compile Include="ViewModels\ImageInHubspot.cs" />
+    <Compile Include="ViewModels\ReplaceImageUrlParams.cs" />
     <Compile Include="ViewModels\TokenResponse.cs" />
   </ItemGroup>
   <ItemGroup>
