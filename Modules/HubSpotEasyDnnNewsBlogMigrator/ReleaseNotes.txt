@@ -40,6 +40,25 @@
 		</ul>
 		<hr />
 
+		<h3>Version 01.04.00</h3>
+		<h4>Enhancements</h4>
+		<ul>
+			<li>SI: Added the ability to pass search parameters, making the method more dynamic. (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/pulls/31" target="_blank">Pull 33</a>, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>!)</li>
+			<li>SI: Implemented methods to convert the absolute paths of the images into relative paths. (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/pulls/31" target="_blank">Pull 33</a>, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>!)</li>
+			<li>SI: Added a method to eliminate duplicate images that are found both in the 'ArticleImage' column (main image) and in the summary and content of the post. (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/pulls/31" target="_blank">Pull 33</a>, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>!)</li>
+			<!--
+			<li>SI:  (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/issues/" target="_blank">Issue </a>, thanks <a href="https://github.com/" target="_blank">@</a>!)</li>
+			-->
+		</ul>
+		<h4>Maintenence &amp Bug Fixes</h4>
+		<ul>
+			<li>None at this time.</li>
+			<!--
+			<li> (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/issues/" target="_blank">Issue </a>, thanks <a href="https://github.com/" target="_blank">@</a>!)</li>
+			-->
+		</ul>
+		<hr />
+
 		<h3>Version 01.03.00</h3>
 		<h4>Enhancements</h4>
 		<ul>

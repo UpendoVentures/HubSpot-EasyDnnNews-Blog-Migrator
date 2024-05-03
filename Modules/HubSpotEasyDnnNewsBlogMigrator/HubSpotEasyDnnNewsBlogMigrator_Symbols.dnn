@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <dotnetnuke type="Package" version="6.0">
   <packages>
-    <package name="UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator_Symbols" type="Library" version="01.03.00">
+    <package name="UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator_Symbols" type="Library" version="01.04.00">
       <friendlyName>HubSpotEasyDnnNewsBlogMigrator Module Symbols</friendlyName>
       <description><![CDATA[Module to migrate HubSpot blog posts to EasyDNNNews]]></description>
       <iconFile>~/DesktopModules/HubSpotEasyDnnNewsBlogMigrator/Images/logo.png</iconFile>
@@ -15,7 +15,7 @@
       <releaseNotes src="ReleaseNotes.txt" />
       <azureCompatible>True</azureCompatible>
       <dependencies>
-        <dependency type="managedPackage" version="1.3.0">UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator</dependency>
+        <dependency type="managedPackage" version="1.4.0">UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator</dependency>
       </dependencies>
       <components>
         <component type="ResourceFile">
