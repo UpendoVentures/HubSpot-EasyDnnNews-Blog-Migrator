@@ -100,6 +100,11 @@
               <path>bin</path>
               <version>2.0.151</version>
             </assembly>
+            <assembly>
+              <name>HtmlAgilityPack.dll</name>
+              <path>bin</path>
+              <version>1.11.61</version>
+            </assembly>
           </assemblies>
         </component>
       </components>
