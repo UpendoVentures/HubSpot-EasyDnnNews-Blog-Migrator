@@ -19,26 +19,23 @@ using DotNetNuke.Entities.Modules;
 using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Instrumentation;
+using DotNetNuke.Services.Localization;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Data;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Models;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contract;
 using UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.ViewModels;
-using System.Linq;
-using DotNetNuke.Web.UI.WebControls;
-using System.IO;
-using System.Net;
-using System.Web.Hosting;
-using System.Security.Policy;
-using System.Text.RegularExpressions;
-using DotNetNuke.Services.Localization;
-using System.Web;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -231,6 +228,33 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
         }
 
         /// <summary>
+        /// Get title link from Hubspot Article Url.
+        /// </summary>
+        /// <param name="url">Hubspot Article Url</param>
+        /// <returns>New Title Link.</returns>
+        private string GetTitleLink(string url)
+        {
+            try
+            {
+                Uri uri = new Uri(url);
+                string absolutePath = uri.AbsolutePath;
+                absolutePath = absolutePath.TrimEnd('/');
+                string[] parts = absolutePath.Split('/');
+                string desiredText = parts[parts.Length - 1];
+
+                if (string.IsNullOrEmpty(desiredText))
+                    return string.Empty;
+
+                return desiredText;
+            }
+            catch (Exception)
+            {
+
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
         /// Migrates the blog posts from Hubspot.
         /// </summary>
         /// <param name="accessToken">The access token for Hubspot.</param>
@@ -307,7 +331,7 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                                             NumberOfViews = 0,
                                             RatingValue = 0,
                                             RatingCount = 0,
-                                            TitleLink = string.IsNullOrEmpty(item.HtmlTitle) ? string.Empty : ReplaceAndRemove(item.HtmlTitle),
+                                            TitleLink = string.IsNullOrEmpty(item.Url) ?  (string.IsNullOrEmpty(item.HtmlTitle) ? string.Empty : ReplaceAndRemove(item.HtmlTitle)) : GetTitleLink(item.Url),
                                             DetailType = Constant.BlogData.DetailType,
                                             DetailsTemplate = Constant.BlogData.DetailsTemplate,
                                             DetailsTheme = Constant.BlogData.DetailsTemplate,
