@@ -32,6 +32,7 @@ using HtmlAgilityPack;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
 {
@@ -575,6 +576,44 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
             return result;
         }
 
+        public async Task<int> ReplaceSimpleUrls()
+        {
+            var easyDNNNews = await GetAllEasyDNNNews();
+            var result = 0;
+
+            foreach (var item in easyDNNNews)
+            {
+                try
+                {
+                    // For Article
+                    var doc = new HtmlDocument();
+                    doc.LoadHtml(item.Article);
+                    bool replaced = await ReplaceSimpleLink(doc);
+                    item.Article = doc.DocumentNode.OuterHtml;
+
+                    // For Summary
+                    doc = new HtmlDocument();
+                    doc.LoadHtml(item.Summary);
+                    replaced = replaced || await ReplaceSimpleLink(doc);
+                    item.Summary = doc.DocumentNode.OuterHtml;
+
+                    // For CleanArticleData
+                    doc = new HtmlDocument();
+                    doc.LoadHtml(item.CleanArticleData);
+                    replaced = replaced || await ReplaceSimpleLink(doc);
+                    item.CleanArticleData = doc.DocumentNode.OuterHtml;
+
+                    var rowsEffected = await UpdateEasyDNNNews(item);
+                    if (rowsEffected && replaced) { result++; }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex);
+                }
+            }
+            return result;
+        }
+
         private bool ReplaceAnchorNodes(HtmlDocument doc, string domainToReplace)
         {
             var nodes = doc.DocumentNode.SelectNodes("//a");
@@ -604,6 +643,62 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository
                 }
             }
             return replaced;
+        }
+
+        private async Task<bool> ReplaceSimpleLink(HtmlDocument doc)
+        {
+            var nodes = doc.DocumentNode.SelectNodes("//a");
+            bool replaced = false;
+
+            if (nodes != null)
+            {
+                foreach (var node in nodes)
+                {
+                    var href = node.GetAttributeValue("href", "/*");
+
+                    // Remove date pattern from href
+                    string pattern = @"\/\d{4}\/\d{2}\/\d{2}\/";
+                    string replacement = "/";
+                    Regex rgx = new Regex(pattern);
+                    string result = rgx.Replace(href, replacement);
+
+                    var links = result.TrimEnd('/').Split('/');
+
+                    if (links.Length == 2)
+                    {
+                        var category = await GetCategoryNameIfBlogExists(links[1]);
+                        if (category != null)
+                        {
+                            var newPath = category == Constant.DefaultCategoryName ? $"{Constant.ReplaceBlogArticle}{links[1]}" : $"{Constant.LocationsRoute}{category}{Constant.ReplaceBlogArticle}{links[1]}";
+                            node.SetAttributeValue("href", newPath);
+                            replaced = true;
+                        }
+                    }
+                }
+            }
+            return replaced;
+        }
+
+        public async Task<string> GetCategoryNameIfBlogExists(string link)
+        {
+            try
+            {
+                var query = $@"
+                            SELECT EasyDNNNewsCategoryList.CategoryName
+                            FROM EasyDNNNews
+                            INNER JOIN EasyDNNNewsCategories ON EasyDNNNews.ArticleID = EasyDNNNewsCategories.ArticleID
+                            INNER JOIN EasyDNNNewsCategoryList ON EasyDNNNewsCategories.CategoryID = EasyDNNNewsCategoryList.CategoryID
+                            WHERE EasyDNNNews.TitleLink = @link";
+
+                var categoryName = await _connection.QueryFirstOrDefaultAsync<string>(query, new { link });
+
+                return categoryName;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                return null;
+            }
         }
     }
 }
