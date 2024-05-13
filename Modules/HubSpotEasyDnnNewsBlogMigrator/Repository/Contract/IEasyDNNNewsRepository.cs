@@ -29,5 +29,6 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Repository.Contr
         Task<int> RemoveDuplicateImages();
         Task<int> ReplaceImageUrls(string domainToReplace, string partialPath, int skipSegments);
         Task<int> ReplaceAbsoluteUrls(string domainToReplace);
+        Task<int> ReplaceSimpleUrls();
     }
 }
