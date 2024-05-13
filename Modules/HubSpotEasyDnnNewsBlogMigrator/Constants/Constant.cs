@@ -114,6 +114,8 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Constants
         /// The default category name.
         /// </summary>
         public const string DefaultCategoryName = "Business";
+        public const string LocationsRoute = "/locations/";
+        public const string ReplaceBlogArticle = "/blog/article/";
 
         public const string Hyphen = "-";
         public const string Period = ".";
