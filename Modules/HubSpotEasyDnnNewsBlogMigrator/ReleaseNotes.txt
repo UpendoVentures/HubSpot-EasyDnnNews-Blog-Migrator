@@ -40,6 +40,27 @@
 		</ul>
 		<hr />
 
+		<h3>Version 01.05.00</h3>
+		<h4>Enhancements</h4>
+		<ul>
+			<li>SI: Implemented a new `ReplaceSimpleLink` method to reorganize the structure of links in blog content, especially to change the way links are organized. Which prevents multiple HubSpot posts from containing URLs relative to other posts resulting in unhandled exceptions. (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/pulls/39" target="_blank">Pull 39</a>, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>!)</li>
+			<li>SI: Uses a regular expression to remove any date pattern in the format &quot;/YYYY/MM/DD/&quot; from the href value. (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/pulls/39" target="_blank">Pull 39</a>, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>!)</li>
+			<li>SI: Try to get the blog category name; and if the blog exists, create a new route for the link. (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/pulls/39" target="_blank">Pull 39</a>, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>!)</li>
+			<li>SI: Add two routes for those from HubSpot, add `blog/article` leaving the new link `blog/article/article` name. (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/pulls/39" target="_blank">Pull 39</a>, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>!)</li>
+			<li>SI: (<em>Custom Requirement, can be removed in a later release</em>)  For the others add `locations/location name/blog/article/article name`. (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/pulls/39" target="_blank">Pull 39</a>, thanks <a href="https://github.com/alejoroman0605" target="_blank">@alejoroman0605</a>!)</li>
+			<!--
+			<li>SI:  (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/issues/" target="_blank">Issue </a>, thanks <a href="https://github.com/" target="_blank">@</a>!)</li>
+			-->
+		</ul>
+		<h4>Maintenence &amp Bug Fixes</h4>
+		<ul>
+			<li>None at this time.</li>
+			<!--
+			<li> (<a href="https://github.com/UpendoVentures/HubSpot-EasyDnnNews-Blog-Migrator/issues/" target="_blank">Issue </a>, thanks <a href="https://github.com/" target="_blank">@</a>!)</li>
+			-->
+		</ul>
+		<hr />
+
 		<h3>Version 01.04.00</h3>
 		<h4>Enhancements</h4>
 		<ul>
