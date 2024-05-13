@@ -86,5 +86,12 @@ namespace UpendoVentures.Modules.HubSpotEasyDnnNewsBlogMigrator.Services
             var result = await _easyDNNNewsRepository.ReplaceAbsoluteUrls(parameters.DomainToReplace);
             return Ok(result);
         }
+
+        [HttpGet]
+        public async Task<IHttpActionResult> ReplaceAllSimpleUrls()
+        {
+            var result = await _easyDNNNewsRepository.ReplaceSimpleUrls();
+            return Ok(result);
+        }
     }
 }
